@@ -162,7 +162,7 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
         mPosX += 40.0f;
     }
     PickRandomSpeed();
-    mBodyHealth = 270;
+    mBodyHealth = 370;
 
     const ZombieDefinition& aZombieDef = GetZombieDefinition(mZombieType);
     RenderLayer aRenderLayer = RenderLayer::RENDER_LAYER_ZOMBIE;
@@ -171,11 +171,30 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
     {
         LoadReanim(aZombieDef.mReanimationType);
     }
+    mVariantType = ZombieVariant::ZOMBIE_VARIANT_NONE;
 
     switch (theType)
     {
     case ZombieType::ZOMBIE_NORMAL:  
         LoadPlainZombieReanim();
+        if (RandRangeInt(1,7) == 7 && mBoard && mBoard->mCurrentWave > 3)
+        {
+            mVariantType = ZombieVariant::ZOMBIE_VARIANT_DASHER;
+            mVelX = 2.0f;
+            UpdateAnimSpeed();
+        }
+        else if (RandRangeInt(1, 6) == 6 && mBoard && mBoard->mCurrentWave > 2)
+        {
+            mVariantType = ZombieVariant::ZOMBIE_VARIANT_GHOST;
+            mVelX = 0.5f;
+            UpdateAnimSpeed();
+            ReanimShowPrefix("Zombie_outerleg_upper", RENDER_GROUP_HIDDEN);
+            ReanimShowPrefix("Zombie_outerleg_lower", RENDER_GROUP_HIDDEN);
+            ReanimShowPrefix("Zombie_outerleg_foot", RENDER_GROUP_HIDDEN);
+            ReanimShowPrefix("Zombie_innerleg_upper", RENDER_GROUP_HIDDEN);
+            ReanimShowPrefix("Zombie_innerleg_lower", RENDER_GROUP_HIDDEN);
+            ReanimShowPrefix("Zombie_innerleg_foot", RENDER_GROUP_HIDDEN);
+        }
         break;
 
     case ZombieType::ZOMBIE_DUCKY_TUBE:  
@@ -4285,6 +4304,50 @@ void Zombie::UpdateActions()
     {
         UpdateZombiePeaHead();
     }
+    if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_DASHER)
+    {
+        if (mIsEating && mHasHead && mVelX == 2.0f)
+        {
+            
+            Plant* aPlant = FindPlantTarget(ZombieAttackType::ATTACKTYPE_CHEW);
+            if (aPlant)
+            {
+                aPlant->mPlantHealth -= 250;
+                mZombieAttackRect = Rect(0,0,0,0);
+                StopEating();
+                mVelX = -2.0f;
+                UpdateAnimSpeed();
+                mPosX += 10;
+                mPhaseCounter = 30;
+            }
+        }
+        if (mPhaseCounter <= 0 && mVelX == -2.0f)
+        {
+            mVelX = 0.3f;
+            UpdateAnimSpeed();
+            mZombieAttackRect = Rect(50, 0, 20, 115);
+        }
+    }
+    if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_GHOST)
+    {
+        if (mBodyHealth <= 270 && mZombiePhase == ZombiePhase::PHASE_ZOMBIE_NORMAL)
+        {
+            mVelX == 0.7f;
+            UpdateAnimSpeed();
+            mPhaseCounter = 600;
+            mZombieAttackRect = Rect(0, 0, 0, 0);
+            mZombieRect = Rect(0, 0, 0, 0);
+            mZombiePhase = ZombiePhase::PHASE_GHOST_TRANSFORM;
+        }
+        if (mZombiePhase == ZombiePhase::PHASE_GHOST_TRANSFORM && mPhaseCounter <= 0)
+        {
+            mZombieAttackRect = Rect(50, 0, 20, 115);
+            mZombieRect = Rect(36, 0, 42, 115);
+            mZombiePhase = ZombiePhase::PHASE_GHOST_END;
+            mVelX == 0.5f;
+            UpdateAnimSpeed();
+        }
+    }
     if (mZombieType == ZombieType::ZOMBIE_JALAPENO_HEAD)
     {
         UpdateZombieJalapenoHead();
@@ -5474,6 +5537,24 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
     }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_DASHER)
+    {
+        aColorOverride = Color(235, 103, 47, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_GHOST)
+    {
+        aColorOverride = Color(255, 255, 255, aFadeAlpha);
+        aExtraAdditiveColor = Color(255, 255, 255, aFadeAlpha);
+        aEnableExtraAdditiveDraw = true;
+        if (mZombiePhase == ZombiePhase::PHASE_GHOST_TRANSFORM)
+        {
+            aColorOverride = Color(255, 255, 255, aFadeAlpha - 100);
+            aExtraAdditiveColor = Color(255, 255, 255, aFadeAlpha - 100);
+            aEnableExtraAdditiveDraw = true;
+        }
+    }
     else if (mZombieHeight == ZombieHeight::HEIGHT_ZOMBIQUARIUM && mBodyHealth < 100)
     {
         aColorOverride = Color(100, 150, 25, aFadeAlpha);
@@ -6071,6 +6152,17 @@ void Zombie::Draw(Graphics* g)
     if (mButteredCounter > 0)
     {
         DrawButter(g, aDrawPos);
+    }
+    if (mBoard)
+    {
+        Plant* aPlant = nullptr;
+        while (mBoard->IteratePlants(aPlant))
+        {
+            if (aPlant->mSunTargetZombie == this)
+            {
+                g->DrawImageCel(IMAGE_COBCANNON_TARGET, 15.0f, 50.0f, 0);
+            }
+        }
     }
 
     if (mAttachmentID != AttachmentID::ATTACHMENTID_NULL)

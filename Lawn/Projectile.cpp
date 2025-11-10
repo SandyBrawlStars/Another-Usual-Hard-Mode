@@ -25,7 +25,9 @@ ProjectileDefinition gProjectileDefinition[] = {
 	{ ProjectileType::PROJECTILE_KERNEL,        0,  20  },
 	{ ProjectileType::PROJECTILE_COBBIG,        0,  300 },
 	{ ProjectileType::PROJECTILE_BUTTER,        0,  40  },
-	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20  }
+	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20  },
+	{ ProjectileType::PROJECTILE_ELECTRO_PEA,           0,  20 },
+
 };
 
 Projectile::Projectile()
@@ -73,6 +75,8 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mProjectileAge = 0;
 	mClickBackoffCounter = 0;
 	mAnimTicksPerFrame = 0;
+	mPierceLeft = 3;
+	mZombieLast = nullptr;
 
 	if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_BUTTER)
 	{
@@ -96,7 +100,7 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
 	{
-		TOD_ASSERT();
+		
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_COBBIG)
 	{
@@ -268,7 +272,7 @@ void Projectile::CheckForCollision()
 		return;
 	}
 
-	if ((mProjectileType == ProjectileType::PROJECTILE_PEA || mProjectileType == ProjectileType::PROJECTILE_STAR) && mShadowY - mPosY > 90.0f)
+	if ((mProjectileType == ProjectileType::PROJECTILE_PEA || mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA || mProjectileType == ProjectileType::PROJECTILE_STAR) && mShadowY - mPosY > 90.0f)
 	{
 		return;
 	}
@@ -313,6 +317,7 @@ bool Projectile::CantHitHighGround()
 
 	return (
 		mProjectileType == ProjectileType::PROJECTILE_PEA ||
+		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA ||
 		mProjectileType == ProjectileType::PROJECTILE_STAR ||
 		mProjectileType == ProjectileType::PROJECTILE_PUFF ||
@@ -325,6 +330,7 @@ void Projectile::CheckForHighGround()
 	float aShadowDelta = mShadowY - mPosY;
 
 	if (mProjectileType == ProjectileType::PROJECTILE_PEA ||
+		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA ||
 		mProjectileType == ProjectileType::PROJECTILE_FIREBALL ||
 		mProjectileType == ProjectileType::PROJECTILE_SPIKE ||
@@ -758,6 +764,10 @@ void Projectile::PlayImpactSound(Zombie* theZombie)
 		mApp->PlayFoley(FoleyType::FOLEY_BUTTER);
 		aPlaySplatSound = false;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+	{
+		aPlaySplatSound = false;
+	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_FIREBALL && IsSplashDamage(theZombie))
 	{
 		mApp->PlayFoley(FoleyType::FOLEY_IGNITE);
@@ -805,7 +815,19 @@ void Projectile::DoImpact(Zombie* theZombie)
 	else if (theZombie)
 	{
 		unsigned int aDamageFlags = GetDamageFlags(theZombie);
-		theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+		if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+		{
+			if (mZombieLast != theZombie)
+			{
+				theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+				mPierceLeft--;
+				mZombieLast = theZombie;
+			}
+		}
+		else
+		{
+			theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+		}
 	}
 
 	float aLastPosX = mPosX - mVelX;
@@ -830,6 +852,11 @@ void Projectile::DoImpact(Zombie* theZombie)
 		mBoard->ShakeBoard(3, -4);
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_PEA)
+	{
+		aSplatPosX -= 15.0f;
+		aEffect = ParticleEffect::PARTICLE_PEA_SPLAT;
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 	{
 		aSplatPosX -= 15.0f;
 		aEffect = ParticleEffect::PARTICLE_PEA_SPLAT;
@@ -904,7 +931,21 @@ void Projectile::DoImpact(Zombie* theZombie)
 		}
 	}
 
-	Die();
+	if (mProjectileType != ProjectileType::PROJECTILE_ELECTRO_PEA)
+	{
+		Die();
+	}
+	else
+	{
+		if (mPierceLeft <= 0)
+		{
+			Reanimation* aFireReanim = mApp->AddReanimation(mPosX + 38.0f, mPosY - 20.0f, mRenderOrder + 1, ReanimationType::REANIM_JALAPENO_FIRE);
+			aFireReanim->mAnimTime = 0.25f;
+			aFireReanim->mAnimRate = 24.0f;
+			aFireReanim->OverrideScale(0.7f, 0.4f);
+			Die();
+		}
+	}
 }
 
 void Projectile::Update()
@@ -915,6 +956,7 @@ void Projectile::Update()
 
 	int aTime = 20;
 	if (mProjectileType == ProjectileType::PROJECTILE_PEA || 
+		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || 
 		mProjectileType == ProjectileType::PROJECTILE_CABBAGE || 
 		mProjectileType == ProjectileType::PROJECTILE_MELON || 
@@ -953,7 +995,7 @@ void Projectile::Draw(Graphics* g)
 		aImage = IMAGE_REANIM_COBCANNON_COB;
 		aScale = 0.9f;
 	}
-	else if (mProjectileType == ProjectileType::PROJECTILE_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+	else if (mProjectileType == ProjectileType::PROJECTILE_PEA || mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
 	{
 		aImage = IMAGE_PROJECTILEPEA;
 	}
@@ -1019,6 +1061,12 @@ void Projectile::Draw(Graphics* g)
 		aMirror = true;
 	}
 
+	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+	{
+		g->SetColorizeImages(true);
+		g->SetColor(Color(128, 236, 255));
+	}
+
 	if (aImage)
 	{
 		TOD_ASSERT(aProjectileDef.mImageRow < aImage->mNumRows);
@@ -1041,6 +1089,8 @@ void Projectile::Draw(Graphics* g)
 			TodBltMatrix(g, aImage, aTransform, g->mClipRect, Color::White, g->mDrawMode, aSrcRect);
 		}
 	}
+
+	g->SetColorizeImages(false);
 
 	if (mAttachmentID != AttachmentID::ATTACHMENTID_NULL)
 	{
@@ -1081,6 +1131,7 @@ void Projectile::DrawShadow(Graphics* g)
 	switch (mProjectileType)
 	{
 	case ProjectileType::PROJECTILE_PEA:
+	case ProjectileType::PROJECTILE_ELECTRO_PEA:
 	case ProjectileType::PROJECTILE_ZOMBIE_PEA:
 		aOffsetX += 3.0f;
 		break;
@@ -1145,6 +1196,7 @@ void Projectile::Die()
 Rect Projectile::GetProjectileRect()
 {
 	if (mProjectileType == ProjectileType::PROJECTILE_PEA || 
+		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA ||
 		mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
 	{

@@ -636,11 +636,11 @@ void Board::PickZombieWaves()
 		}
 		else if (mApp->IsAdventureMode() && mApp->HasFinishedAdventure() && mLevel != 5)
 		{
-			aZombiePoints = aWave * 2 / 5 + 1;
+			aZombiePoints = (aWave * 1.5) * 2 / 5 + 1;
 		}
 		else
 		{
-			aZombiePoints = aWave / 3 + 1;
+			aZombiePoints = (aWave * 1.5) / 3 + 1;
 		}
 
 		if (aIsFlagWave)
@@ -1343,11 +1343,11 @@ void Board::InitLevel()
 	}
 	else if (mApp->IsFirstTimeAdventureMode() && mLevel == 1)
 	{
-		mSunMoney = 150;
+		mSunMoney = 200;
 	}
 	else
 	{
-		mSunMoney = 50;
+		mSunMoney = 75;
 	}
 
 	memset(mRowPickingArray, 0, sizeof(mRowPickingArray));
@@ -6528,7 +6528,7 @@ bool Board::HasProgressMeter()
 bool Board::ProgressMeterHasFlags()
 {
 	if (mApp->IsFirstTimeAdventureMode() && mLevel == 1)
-		return false;
+		return true;
 
 	if (mApp->IsWhackAZombieLevel() ||
 		mApp->IsFinalBossLevel() ||
@@ -8526,6 +8526,10 @@ void Board::AddSunMoney(int theAmount)
 	if (mSunMoney > 9990)
 	{
 		mSunMoney = 9990;
+	}
+	if (mSunMoney < 0)
+	{
+		mSunMoney = 0;
 	}
 }
 

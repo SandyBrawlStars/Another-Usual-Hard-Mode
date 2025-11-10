@@ -188,7 +188,9 @@ public:
     bool                    mSquished;                      
     bool                    mIsAsleep;                      
     bool                    mIsOnBoard;                     
-    bool                    mHighlighted;                   
+    bool                    mHighlighted;   
+    PlantVariant            mVariantType;
+    Zombie*                 mSunTargetZombie;
 
 public:
     Plant();

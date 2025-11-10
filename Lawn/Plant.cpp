@@ -20,9 +20,11 @@
 #include "../Sexy.TodLib/TodParticle.h"
 #include "../Sexy.TodLib/EffectSystem.h"
 #include "../Sexy.TodLib/TodStringFile.h"
+#include "../SexyAppFramework/ButtonWidget.h"
+#include "../SexyAppFramework/WidgetManager.h"
 
 PlantDefinition gPlantDefs[SeedType::NUM_SEED_TYPES] = {  
-    { SeedType::SEED_PEASHOOTER,        nullptr, ReanimationType::REANIM_PEASHOOTER,    0,  100,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("PEASHOOTER") },
+    { SeedType::SEED_PEASHOOTER,        nullptr, ReanimationType::REANIM_PEASHOOTER,    0,  125,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("PEASHOOTER") },
     { SeedType::SEED_SUNFLOWER,         nullptr, ReanimationType::REANIM_SUNFLOWER,     1,  50,     750,    PlantSubClass::SUBCLASS_NORMAL,     2500,   _S("SUNFLOWER") },
     { SeedType::SEED_CHERRYBOMB,        nullptr, ReanimationType::REANIM_CHERRYBOMB,    3,  150,    5000,   PlantSubClass::SUBCLASS_NORMAL,     0,      _S("CHERRY_BOMB") },
     { SeedType::SEED_WALLNUT,           nullptr, ReanimationType::REANIM_WALLNUT,       2,  50,     3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      _S("WALL_NUT") },
@@ -133,6 +135,8 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     mLaunchRate = aPlantDef.mLaunchRate;
     mSubclass = aPlantDef.mSubClass;
     mRenderOrder = CalcRenderOrder();
+    mVariantType = PlantVariant::SEED_VARIANT_NONE;
+    mSunTargetZombie = nullptr;
 
     Reanimation* aBodyReanim = nullptr;
     if (aPlantDef.mReanimationType != ReanimationType::REANIM_NONE)
@@ -1001,6 +1005,27 @@ void Plant::UpdateProductionPlant()
         int aFlashCountdown = TodAnimateCurve(100, 0, mLaunchCounter, 0, 100, TodCurves::CURVE_LINEAR);
         mEatenFlashCountdown = max(mEatenFlashCountdown, aFlashCountdown);
     }
+    if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER && mBoard && mBoard->mSunMoney >= 75 && mLaunchCounter <= 400)
+    {
+        Zombie* aZombie = nullptr;
+        Zombie* aBestZombie = nullptr;
+        while (mBoard->IterateZombies(aZombie))
+        {
+            if (!aBestZombie)
+            {
+                aBestZombie = aZombie;
+            }
+            Rect aZombieRect = aZombie->GetZombieRect();
+            Rect aBestZombieRect = aBestZombie->GetZombieRect();
+            float aDistance = -Distance2D(mX + 40.0f, mY + 40.0f, aZombieRect.mX + aZombieRect.mWidth / 2, aZombieRect.mY + aZombieRect.mHeight / 2);
+            float aBestDistance = -Distance2D(mX + 40.0f, mY + 40.0f, aBestZombieRect.mX + aBestZombieRect.mWidth / 2, aBestZombieRect.mY + aBestZombieRect.mHeight / 2);
+            if (aBestZombie && aDistance > aBestDistance && !aZombie->mDead && !aZombie->mMindControlled)
+            {
+                aBestZombie = aZombie;
+            }
+        }
+        mSunTargetZombie = aBestZombie;
+    }
     if (mLaunchCounter <= 0)
     {
         mLaunchCounter = RandRangeInt(mLaunchRate - 150, mLaunchRate);
@@ -1019,7 +1044,39 @@ void Plant::UpdateProductionPlant()
         }
         else if (mSeedType == SeedType::SEED_SUNFLOWER)
         {
-            mBoard->AddCoin(mX, mY, CoinType::COIN_SUN, CoinMotion::COIN_MOTION_FROM_PLANT);
+            if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
+            {
+                if (mBoard && mBoard->mSunMoney >= 75 && mSunTargetZombie)
+                {
+                    mBoard->AddCoin(mX, mY, CoinType::COIN_ANTISUN, CoinMotion::COIN_MOTION_LAWNMOWER_COIN);
+                    mBoard->AddCoin(mX, mY, CoinType::COIN_ANTISUN, CoinMotion::COIN_MOTION_LAWNMOWER_COIN);
+                    mBoard->AddCoin(mX, mY, CoinType::COIN_ANTISUN, CoinMotion::COIN_MOTION_LAWNMOWER_COIN);
+                    Zombie* aZombie = mSunTargetZombie;
+                    if (aZombie)
+                    {
+                        aZombie->ApplyBurn();
+                        int aOriginX = aZombie->mPosX + (aZombie->mZombieRect.mX + aZombie->mZombieRect.mWidth / 2);
+                        int aOriginY = aZombie->mPosY + (aZombie->mZombieRect.mY + aZombie->mZombieRect.mHeight / 2);
+                        TodParticleSystem* aParticle = mApp->AddTodParticle(aOriginX, aOriginY, mRenderOrder + 3, ParticleEffect::PARTICLE_POWIE);
+                        aParticle->OverrideScale(nullptr, 0.5f);
+                        mSunTargetZombie = nullptr;
+                    }
+                }
+            }
+            else
+            {
+                if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+                {
+                    mBoard->AddCoin(mX, mY, CoinType::COIN_SUN, CoinMotion::COIN_MOTION_FROM_PLANT);
+                }
+                if (mVariantType == PlantVariant::SEED_VARIANT_HYPNOFLOWER)
+                {
+                    Zombie* aZombie = mBoard->AddZombieInRow(ZombieType::ZOMBIE_NORMAL, mRow, 0);
+                    aZombie->mPosX = mX;
+                    aZombie->StartMindControlled();
+                    mApp->AddTodParticle(mX + 60.0f, mY + 40.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_MIND_CONTROL);
+                }
+            }
         }
         else if (mSeedType == SeedType::SEED_TWINSUNFLOWER)
         {
@@ -2644,6 +2701,22 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(255, 64, 64);
     }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_FIREPEA)
+    {
+        aColorOverride = Color(255, 64, 64);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
+    {
+        aColorOverride = Color(235, 73, 14);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_HYPNOFLOWER)
+    {
+        aColorOverride = Color(226, 12, 250);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
+    {
+        aColorOverride = Color(128, 236, 255);
+    }
     else
     {
         aColorOverride = Color(255, 255, 255);
@@ -4169,6 +4242,52 @@ void Plant::MouseDown(int x, int y, int theClickCount)
         mBoard->mCobCannonMouseX = x;
         mBoard->mCobCannonMouseY = y;
     }
+
+    if (GetRectOverlap(GetPlantRect(), Rect(mApp->mWidgetManager->mLastMouseX, mApp->mWidgetManager->mLastMouseY, 1 , 1)))
+    {
+        if (mSeedType == SeedType::SEED_PEASHOOTER)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_FIREPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_ELECTROPEA;
+                mLaunchRate = 350;
+                mLaunchCounter = 250;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchRate = 150;
+                mLaunchCounter = 150;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_FIREPEA;
+                mLaunchRate = 450;
+                mLaunchCounter = 350;
+            }
+        }
+        if (mSeedType == SeedType::SEED_SUNFLOWER)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_HYPNOFLOWER;
+                mLaunchRate = 3100;
+                mLaunchCounter = 3000;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_HYPNOFLOWER)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchRate = 2500;
+                mLaunchCounter = 2400;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_SUNBLASTER;
+                mLaunchRate = 2000;
+                mLaunchCounter = 1900;
+            }
+        }
+    }
 }
 
 void Plant::IceZombies()
@@ -4471,6 +4590,14 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
     case SeedType::SEED_GATLINGPEA:
     case SeedType::SEED_LEFTPEATER:
         aProjectileType = ProjectileType::PROJECTILE_PEA;
+        if (mVariantType == PlantVariant::SEED_VARIANT_FIREPEA)
+        {
+            aProjectileType = ProjectileType::PROJECTILE_FIREBALL;
+        }
+        if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
+        {
+            aProjectileType = ProjectileType::PROJECTILE_ELECTRO_PEA;
+        }
         break;
     case SeedType::SEED_SNOWPEA:
         aProjectileType = ProjectileType::PROJECTILE_SNOWPEA;
@@ -4646,6 +4773,11 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
 
     Projectile* aProjectile = mBoard->AddProjectile(aOriginX, aOriginY, mRenderOrder - 1, theRow, aProjectileType);
     aProjectile->mDamageRangeFlags = GetDamageRangeFlags(thePlantWeapon);
+
+    if (aProjectile->mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
+    {
+        aProjectile->ConvertToFireball(mBoard->PixelToGridXKeepOnBoard(aOriginX, aOriginY));
+    }
 
     if (mSeedType == SeedType::SEED_CABBAGEPULT || mSeedType == SeedType::SEED_KERNELPULT ||
         mSeedType == SeedType::SEED_MELONPULT || mSeedType == SeedType::SEED_WINTERMELON)

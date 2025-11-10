@@ -411,7 +411,7 @@ bool Coin::IsMoney()
 
 bool Coin::IsSun()
 {
-    return mType == CoinType::COIN_SUN || mType == CoinType::COIN_SMALLSUN || mType == CoinType::COIN_LARGESUN;
+    return mType == CoinType::COIN_SUN || mType == CoinType::COIN_ANTISUN || mType == CoinType::COIN_SMALLSUN || mType == CoinType::COIN_LARGESUN;
 }
 
 bool Coin::IsPresentWithAdvice()
@@ -821,9 +821,15 @@ void Coin::Draw(Graphics* g)
 
     if (mAttachmentID != AttachmentID::ATTACHMENTID_NULL)
     {
+        if (mType == CoinType::COIN_ANTISUN)
+        {
+            g->SetColorizeImages(true);
+            g->SetColor(Color(242, 44, 44));
+        }
         Graphics theAttachmentGraphics(*g);
         MakeParentGraphicsFrame(&theAttachmentGraphics);
         AttachmentDraw(mAttachmentID, &theAttachmentGraphics, false);
+        g->SetColorizeImages(false);
     }
 
     if ((mType == CoinType::COIN_SILVER || mType == CoinType::COIN_GOLD) && mHitGround && !mIsBeingCollected)
@@ -1286,7 +1292,7 @@ float Coin::GetSunScale()
 
 int Coin::GetSunValue()
 {
-    return mType == CoinType::COIN_SUN ? 25 : mType == CoinType::COIN_SMALLSUN ? 15 : mType == CoinType::COIN_LARGESUN ? 50 : 0;
+    return mType == CoinType::COIN_SUN ? 25 : mType == CoinType::COIN_SMALLSUN ? 15 : mType == CoinType::COIN_LARGESUN ? 50 : mType == CoinType::COIN_ANTISUN ? -25 : 0;
 }
 
 int Coin::GetCoinValue(CoinType theCoinType)
@@ -1413,6 +1419,10 @@ bool Coin::MouseHitTest(int theX, int theY, HitResult* theHitResult)
         aExtraClickSize = 15;
     }
     if (mType == CoinType::COIN_SUN)
+    {
+        aExtraClickSize = 15;
+    }
+    if (mType == CoinType::COIN_ANTISUN)
     {
         aExtraClickSize = 15;
     }
