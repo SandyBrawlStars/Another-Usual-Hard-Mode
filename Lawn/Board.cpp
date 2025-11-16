@@ -39,6 +39,16 @@
 
 bool gShownMoreSunTutorial = false;
 
+BackgroundDefinition gBackgroundDefs[NUM_ADVENTURE_BACKGROUNDS] = {
+
+	{BACKGROUND_1_DAY,  _S("DAY")},
+	{BACKGROUND_2_NIGHT,  _S("NIGHT")},
+	{BACKGROUND_3_POOL,  _S("POOL")},
+	{BACKGROUND_4_FOG,  _S("FOG")},
+	{BACKGROUND_5_ROOF,  _S("ROOF")},
+	{BACKGROUND_6_BOSS,  _S("NIGHT_ROOF")},
+};
+
 Board::Board(LawnApp* theApp)
 {
 	mApp = theApp;
@@ -172,6 +182,9 @@ Board::Board(LawnApp* theApp)
 	mCoinFaded = false;
 	mAchievementCoinCount = 0;
 	mGargantuarsKilled = 0;
+	mDebugObjectSelection = 0;
+	mDebugObjectType = 0;
+	mDebugObjectLimit = 0;
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
@@ -662,7 +675,11 @@ void Board::PickZombieWaves()
 		{
 			aZombiePoints *= 6;
 		}
-		else if (mApp->IsLittleTroubleLevel() || mApp->IsWallnutBowlingLevel())
+		else if (mApp->IsWallnutBowlingLevel())
+		{
+			aZombiePoints *= 4.5;
+		}
+		else if (mApp->IsLittleTroubleLevel())
 		{
 			aZombiePoints *= 4;
 		}
@@ -1119,6 +1136,94 @@ void Board::PickBackground()
 		}
 	}
 	PickSpecialGraveStone();
+}
+
+void Board::LoadBackgroundDebug(BackgroundType theBackground)
+{
+	mBackground = theBackground;
+	LoadBackgroundImages();
+
+	if (mBackground == BackgroundType::BACKGROUND_1_DAY || mBackground == BackgroundType::BACKGROUND_GREENHOUSE || mBackground == BackgroundType::BACKGROUND_TREEOFWISDOM)
+	{
+		mPlantRow[0] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[1] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[2] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[3] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[4] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[5] = PlantRowType::PLANTROW_DIRT;
+
+		if (mApp->IsAdventureMode() && mApp->IsFirstTimeAdventureMode())
+		{
+			if (mLevel == 1)
+			{
+				mPlantRow[0] = PlantRowType::PLANTROW_DIRT;
+				mPlantRow[1] = PlantRowType::PLANTROW_DIRT;
+				mPlantRow[3] = PlantRowType::PLANTROW_DIRT;
+				mPlantRow[4] = PlantRowType::PLANTROW_DIRT;
+			}
+			else if (mLevel == 2 || mLevel == 3)
+			{
+				mPlantRow[0] = PlantRowType::PLANTROW_DIRT;
+				mPlantRow[4] = PlantRowType::PLANTROW_DIRT;
+			}
+		}
+		else if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_RESODDED)
+		{
+			mPlantRow[0] = PlantRowType::PLANTROW_DIRT;
+			mPlantRow[4] = PlantRowType::PLANTROW_DIRT;
+		}
+	}
+	else if (mBackground == BackgroundType::BACKGROUND_2_NIGHT)
+	{
+		mPlantRow[0] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[1] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[2] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[3] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[4] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[5] = PlantRowType::PLANTROW_DIRT;
+	}
+	else if (mBackground == BackgroundType::BACKGROUND_3_POOL || mBackground == BackgroundType::BACKGROUND_ZOMBIQUARIUM || mBackground == BackgroundType::BACKGROUND_4_FOG)
+	{
+		mPlantRow[0] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[1] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[2] = PlantRowType::PLANTROW_POOL;
+		mPlantRow[3] = PlantRowType::PLANTROW_POOL;
+		mPlantRow[4] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[5] = PlantRowType::PLANTROW_NORMAL;
+	}
+	else if (mBackground == BackgroundType::BACKGROUND_5_ROOF || mBackground == BackgroundType::BACKGROUND_6_BOSS)
+	{
+		mPlantRow[0] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[1] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[2] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[3] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[4] = PlantRowType::PLANTROW_NORMAL;
+		mPlantRow[5] = PlantRowType::PLANTROW_DIRT;
+	}
+	else
+	{
+		TOD_ASSERT();
+	}
+
+	for (int x = 0; x < MAX_GRID_SIZE_X; x++)
+	{
+		for (int y = 0; y < MAX_GRID_SIZE_Y; y++)
+		{
+			if (mPlantRow[y] == PlantRowType::PLANTROW_DIRT)
+			{
+				mGridSquareType[x][y] = GridSquareType::GRIDSQUARE_DIRT;
+			}
+			else if (mPlantRow[y] == PlantRowType::PLANTROW_POOL && x >= 0 && x <= 8)
+			{
+				mGridSquareType[x][y] = GridSquareType::GRIDSQUARE_POOL;
+			}
+			else if (mPlantRow[y] == PlantRowType::PLANTROW_HIGH_GROUND && x >= 4 && x <= 8)
+			{
+				mGridSquareType[x][y] = GridSquareType::GRIDSQUARE_HIGH_GROUND;
+			}
+		}
+	}
+
 }
 
 void Board::InitZombieWavesForLevel(int theForLevel)
@@ -7711,10 +7816,10 @@ void Board::KeyChar(SexyChar theChar)
 	bool canUseKeybinds = mApp->mBankKeybinds && (!mPaused || mApp->mGameScene == GameScenes::SCENE_PLAYING || mApp->mCrazyDaveReanimID != ReanimationID::REANIMATIONID_NULL);
 	if (isdigit(theChar) && canUseKeybinds && mSeedBank->mY >= 0)
 	{
-		for (int i = 0; i < mSeedBank->mNumPackets; i++)
+		for (int i = 0; i <= mSeedBank->mNumPackets; i++)
 		{
 			int aSeedIndex = i;
-			if (theChar == '0' + aSeedIndex && mSeedBank->mNumPackets > aSeedIndex)
+			if (theChar == '0' + aSeedIndex && mSeedBank->mNumPackets >= aSeedIndex)
 			{
 				if (mApp->mZeroNineBankFormat)
 				{
@@ -8146,11 +8251,256 @@ void Board::KeyChar(SexyChar theChar)
 			aBossZombie->mBossHeadCounter = 0;
 			return;
 		}
-		if (theChar == _S('d'))
+		if (theChar == _S('D'))
 		{
 			aBossZombie->TakeDamage(10000, 0U);
 			return;
 		}
+	}
+
+
+	if (mDebugObjectType == 0)
+	{
+		mDebugObjectLimit = NUM_ZOMBIE_TYPES - 1;
+	}
+	if (mDebugObjectType == 1)
+	{
+		mDebugObjectLimit = NUM_SEED_TYPES - 1;
+	}
+	if (mDebugObjectType == 2)
+	{
+		mDebugObjectLimit = NUM_COIN_TYPES - 1;
+	}
+	if (mDebugObjectType == 3)
+	{
+		mDebugObjectLimit = NUM_PROJECTILES - 1;
+	}
+	if (mDebugObjectType == 4)
+	{
+		mDebugObjectLimit = BACKGROUND_6_BOSS;
+	}
+	if (mDebugObjectType == 5)
+	{
+		mDebugObjectLimit = NUM_ZOMBIE_TYPES - 1;
+	}
+	if (mDebugObjectType == 6)
+	{
+		mDebugObjectLimit = NUM_GRID_ITEM_TYPES - 1;
+	}
+
+	int aMouseX = mApp->mWidgetManager->mLastMouseX - mX;
+	int aMouseY = mApp->mWidgetManager->mLastMouseY - mY;
+	int aGridX = PixelToGridXKeepOnBoard(aMouseX, aMouseY);
+	int aGridY = PixelToGridYKeepOnBoard(aMouseX, aMouseY);
+
+	if (theChar == _S('d'))
+	{
+		mDebugObjectSelection++;
+
+		if (mDebugObjectSelection > mDebugObjectLimit)
+		{
+			mDebugObjectSelection = 0;
+		}
+		if (mDebugObjectSelection < 0)
+		{
+			mDebugObjectSelection = mDebugObjectLimit;
+		}
+		if (mDebugObjectType == 0)
+		{
+			string aName = gZombieDefs[mDebugObjectSelection].mZombieName;
+			DisplayAdvice("Selected Zombie Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 1)
+		{
+			string aName = gPlantDefs[mDebugObjectSelection].mPlantName;
+			DisplayAdvice("Selected Plant Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 2)
+		{
+			string aName = gCoinDefs[mDebugObjectSelection].mCoinName;
+			DisplayAdvice("Selected Coin Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 3)
+		{
+			string aName = gProjectileDefinition[mDebugObjectSelection].mProjectileName;
+			DisplayAdvice("Selected Projectile Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 4)
+		{
+			string aName = gBackgroundDefs[mDebugObjectSelection].mBackgroundName;
+			DisplayAdvice("Selected Background Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 5)
+		{
+			string aName = gZombieDefs[mDebugObjectSelection].mZombieName;
+			DisplayAdvice("Selected Hypno Zombie Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 6)
+		{
+			string aName = gGridItemDefs[mDebugObjectSelection].mItemName;
+			DisplayAdvice("Selected Grid Item Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		return;
+	}
+
+
+	if (theChar == _S('a'))
+	{
+		mDebugObjectSelection--;
+		if (mDebugObjectSelection < 0)
+		{
+			mDebugObjectSelection = mDebugObjectLimit;
+		}
+		if (mDebugObjectSelection > mDebugObjectLimit)
+		{
+			mDebugObjectSelection = 0;
+		}
+		if (mDebugObjectType == 0)
+		{
+			string aName = gZombieDefs[mDebugObjectSelection].mZombieName;
+			DisplayAdvice("Selected Zombie Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 1)
+		{
+			string aName = gPlantDefs[mDebugObjectSelection].mPlantName;
+			DisplayAdvice("Selected Plant Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 2)
+		{
+			string aName = gCoinDefs[mDebugObjectSelection].mCoinName;
+			DisplayAdvice("Selected Coin Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 3)
+		{
+			string aName = gProjectileDefinition[mDebugObjectSelection].mProjectileName;
+			DisplayAdvice("Selected Projectile Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 4)
+		{
+			string aName = gBackgroundDefs[mDebugObjectSelection].mBackgroundName;
+			DisplayAdvice("Selected Background Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 5)
+		{
+			string aName = gZombieDefs[mDebugObjectSelection].mZombieName;
+			DisplayAdvice("Selected Hypno Zombie Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		else if (mDebugObjectType == 6)
+		{
+			string aName = gGridItemDefs[mDebugObjectSelection].mItemName;
+			DisplayAdvice("Selected Grid Item Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
+		return;
+	}
+
+	if (theChar == _S('s'))
+	{
+		mDebugObjectType++;
+		if (mDebugObjectType > 6)
+		{
+			mDebugObjectType = 0;
+		}
+		string aName = mDebugObjectType == 0 ? "Zombie" : mDebugObjectType == 1 ? "Plant" : mDebugObjectType == 2 ? "Coin" : mDebugObjectType == 3 ? "Projectile" : mDebugObjectType == 4 ? "Background" : mDebugObjectType == 5 ? "Hypno Zombie" : mDebugObjectType == 6 ? "Grid Item" : "Nothing";
+		DisplayAdvice("Selected Object Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		return;
+	}
+
+	if (theChar == _S('w'))
+	{
+		if (mDebugObjectType == 0)
+		{
+
+			ZombieType aDebugZombieType = static_cast<ZombieType>(mDebugObjectSelection);
+			Zombie* aZombie = AddZombieInRow(aDebugZombieType, aGridY, Zombie::ZOMBIE_WAVE_DEBUG);
+			return;
+
+		}
+		if (mDebugObjectType == 1)
+		{
+			SeedType aImitaterType = SeedType::SEED_NONE;
+			SeedType aDebugPlantType = static_cast<SeedType>(mDebugObjectSelection);
+			if (aDebugPlantType == SeedType::SEED_IMITATER)
+			{
+				aImitaterType = static_cast<SeedType>(RandRangeInt(0, NUM_SEED_TYPES - 1));
+			}
+			AddPlant(aGridX, aGridY, aDebugPlantType, aImitaterType);
+			return;
+		}
+		if (mDebugObjectType == 2)
+		{
+			CoinType aDebugCoinType = static_cast<CoinType>(mDebugObjectSelection);
+			AddCoin(aMouseX, aMouseY - 70, aDebugCoinType, CoinMotion::COIN_MOTION_COIN);
+			return;
+		}
+		if (mDebugObjectType == 3)
+		{
+			ProjectileType aDebugProjType = static_cast<ProjectileType>(mDebugObjectSelection);
+			Projectile* aProjectile = AddProjectile(aMouseX, aMouseY, RenderLayer::RENDER_LAYER_PLANT, aGridY, aDebugProjType);
+			aProjectile->mDamageRangeFlags = 1;
+			aProjectile->mMotionType = ProjectileMotion::MOTION_STRAIGHT;
+			if (aProjectile->mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
+			{
+				aProjectile->ConvertToFireball(aGridX);
+			}
+			return;
+		}
+		if (mDebugObjectType == 4)
+		{
+			BackgroundType aDebugBackgroundType = static_cast<BackgroundType>(mDebugObjectSelection);
+			LoadBackgroundDebug(aDebugBackgroundType);
+			return;
+		}
+		if (mDebugObjectType == 5)
+		{
+
+			ZombieType aDebugZombieType = static_cast<ZombieType>(mDebugObjectSelection);
+			Zombie* aZombie = AddZombieInRow(aDebugZombieType, aGridY, Zombie::ZOMBIE_WAVE_DEBUG);
+			aZombie->mPosX = aMouseX;
+			aZombie->StartMindControlled();
+			return;
+
+		}
+		if (mDebugObjectType == 6)
+		{
+			GridItemType aDebugItemType = static_cast<GridItemType>(mDebugObjectSelection);
+			GridItem* aGraveStone = mGridItems.DataArrayAlloc();
+			aGraveStone->mGridItemType = aDebugItemType;
+			aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_PLANT, aGridY, 800);
+			aGraveStone->mGridItemCounter = -Rand(50);
+			aGraveStone->mGridX = aGridX;
+			aGraveStone->mGridY = aGridY;
+			if (aGraveStone->mGridItemType == GridItemType::GRIDITEM_LADDER)
+			{
+				aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_PLANT, aGridY, 800);
+			}
+			if (aGraveStone->mGridItemType == GridItemType::GRIDITEM_CRATER)
+			{
+				aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_GROUND, aGridY, 1);
+				aGraveStone->mGridItemCounter = 18000;
+			}
+			if (aGraveStone->mGridItemType == GridItemType::GRIDITEM_PORTAL_CIRCLE || aGraveStone->mGridItemType == GridItemType::GRIDITEM_PORTAL_SQUARE)
+			{
+				aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_PARTICLE, aGridY, 0);
+				aGraveStone->OpenPortal();
+			}
+			if (aGraveStone->mGridItemType == GridItemType::GRIDITEM_GRAVESTONE)
+			{
+				aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_GRAVE_STONE, aGridY, 3);
+				aGraveStone->AddGraveStoneParticles();
+			}
+			if (aGraveStone->mGridItemType == GridItemType::GRIDITEM_SCARY_POT)
+			{
+				aGraveStone->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_PLANT, aGridY, 800);
+				aGraveStone->mScaryPotType = static_cast<ScaryPotType>(RandRangeInt(ScaryPotType::SCARYPOT_SEED, ScaryPotType::SCARYPOT_SUN));
+				aGraveStone->mSeedType = static_cast<SeedType>(RandRangeInt(0, NUM_SEED_TYPES - 1));
+				aGraveStone->mZombieType = static_cast<ZombieType>(RandRangeInt(0, NUM_ZOMBIE_TYPES - 1));
+				aGraveStone->mGridItemState = GridItemState::GRIDITEM_STATE_SCARY_POT_ZOMBIE;
+				aGraveStone->mSunCount = 5;
+			}
+			return;
+
+		}
+		return;
 	}
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_2)
@@ -8788,6 +9138,7 @@ int Board::LeftFogColumn()
 	if (mLevel == 31)													return 6;
 	if (mLevel >= 32 && mLevel <= 36)									return 5;
 	if (mLevel >= 37 && mLevel <= 40)									return 4;
+	else if (mBackground == BackgroundType::BACKGROUND_4_FOG) return 3;
 	TOD_ASSERT();
 }
 

@@ -11,23 +11,22 @@
 #include "../Sexy.TodLib/Reanimator.h"
 #include "../Sexy.TodLib/Attachment.h"
 
-ProjectileDefinition gProjectileDefinition[] = {  
-	{ ProjectileType::PROJECTILE_PEA,           0,  20  },
-	{ ProjectileType::PROJECTILE_SNOWPEA,       0,  20  },
-	{ ProjectileType::PROJECTILE_CABBAGE,       0,  40  },
-	{ ProjectileType::PROJECTILE_MELON,         0,  80  },
-	{ ProjectileType::PROJECTILE_PUFF,          0,  20  },
-	{ ProjectileType::PROJECTILE_WINTERMELON,   0,  80  },
-	{ ProjectileType::PROJECTILE_FIREBALL,      0,  40  },
-	{ ProjectileType::PROJECTILE_STAR,          0,  20  },
-	{ ProjectileType::PROJECTILE_SPIKE,         0,  20  },
-	{ ProjectileType::PROJECTILE_BASKETBALL,    0,  75  },
-	{ ProjectileType::PROJECTILE_KERNEL,        0,  20  },
-	{ ProjectileType::PROJECTILE_COBBIG,        0,  300 },
-	{ ProjectileType::PROJECTILE_BUTTER,        0,  40  },
-	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20  },
-	{ ProjectileType::PROJECTILE_ELECTRO_PEA,           0,  20 },
-
+ProjectileDefinition gProjectileDefinition[] = {
+	{ ProjectileType::PROJECTILE_PEA,           0,  20,  _S("PEA")},
+	{ ProjectileType::PROJECTILE_SNOWPEA,       0,  20,  _S("SNOW_PEA")  },
+	{ ProjectileType::PROJECTILE_CABBAGE,       0,  40,  _S("CABBAGE")  },
+	{ ProjectileType::PROJECTILE_MELON,         0,  80,  _S("MELON")  },
+	{ ProjectileType::PROJECTILE_PUFF,          0,  20,   _S("SPORE")  },
+	{ ProjectileType::PROJECTILE_WINTERMELON,   0,  80,  _S("WINTER_MELON") },
+	{ ProjectileType::PROJECTILE_FIREBALL,      0,  40,  _S("FIREBALL")  },
+	{ ProjectileType::PROJECTILE_STAR,          0,  20,  _S("STAR")  },
+	{ ProjectileType::PROJECTILE_SPIKE,         0,  20,  _S("SPIKE")  },
+	{ ProjectileType::PROJECTILE_BASKETBALL,    0,  75,  _S("BASKETBALL")  },
+	{ ProjectileType::PROJECTILE_KERNEL,        0,  20,  _S("KERNEL")  },
+	{ ProjectileType::PROJECTILE_COBBIG,        0,  200,  _S("COBBIG") },
+	{ ProjectileType::PROJECTILE_BUTTER,        0,  40,  _S("BUTTER")  },
+	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20,  _S("ZOMBIE_PEA")  },
+	{ ProjectileType::PROJECTILE_ELECTRO_PEA,    0,  20,  _S("ELECTRO_PEA") },
 };
 
 Projectile::Projectile()
@@ -45,6 +44,8 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mProjectileType = theProjectileType;
 	mPosX = theX;
 	mPosY = theY;
+	mOriginalX = theX;
+	mOriginalY = theY;
 	mPosZ = 0.0f;
 	mVelX = 0.0f;
 	mVelY = 0.0f;
@@ -77,6 +78,11 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mAnimTicksPerFrame = 0;
 	mPierceLeft = 3;
 	mZombieLast = nullptr;
+	mPierces = false;
+	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+	{
+		mPierces = true;
+	}
 
 	if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_BUTTER)
 	{
@@ -339,6 +345,10 @@ void Projectile::CheckForHighGround()
 		if (aShadowDelta < 28.0f)
 		{
 			DoImpact(nullptr);
+			if (mPierces)
+			{
+				Die();
+			}
 			return;
 		}
 	}
@@ -391,6 +401,10 @@ unsigned int Projectile::GetDamageFlags(Zombie* theZombie)
 	else if (mMotionType == ProjectileMotion::MOTION_STAR && mVelX < 0.0f)
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
+	}
+	else if (mPierces)
+	{
+		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_HITS_SHIELD_AND_BODY, true);
 	}
 
 	if (mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
@@ -618,6 +632,17 @@ void Projectile::UpdateNormalMotion()
 	{
 		mPosX -= 3.33f;
 	}
+	else if (mMotionType == ProjectileMotion::MOTION_MAGNET)
+	{
+		mMagnetDegree+= 4;
+		float aDirection = mMagnetDegree;
+		float aPositionX = 50 * cos(DEG_TO_RAD(aDirection));
+		float aPositionY = 50 * -sin(DEG_TO_RAD(aDirection));
+		mPosX = mOriginalX + aPositionX;
+		mPosY = mOriginalY + aPositionY;
+		CheckForCollision();
+		return;
+	}
 	else if (mMotionType == ProjectileMotion::MOTION_HOMING)
 	{
 		Zombie* aZombie = mBoard->ZombieTryToGet(mTargetZombieID);
@@ -764,7 +789,7 @@ void Projectile::PlayImpactSound(Zombie* theZombie)
 		mApp->PlayFoley(FoleyType::FOLEY_BUTTER);
 		aPlaySplatSound = false;
 	}
-	else if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+	else if (mPierces)
 	{
 		aPlaySplatSound = false;
 	}
@@ -815,7 +840,7 @@ void Projectile::DoImpact(Zombie* theZombie)
 	else if (theZombie)
 	{
 		unsigned int aDamageFlags = GetDamageFlags(theZombie);
-		if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+		if (mPierces)
 		{
 			if (mZombieLast != theZombie)
 			{
@@ -931,13 +956,13 @@ void Projectile::DoImpact(Zombie* theZombie)
 		}
 	}
 
-	if (mProjectileType != ProjectileType::PROJECTILE_ELECTRO_PEA)
+	if (!mPierces)
 	{
 		Die();
 	}
 	else
 	{
-		if (mPierceLeft <= 0)
+		if (mPierceLeft <= 0 && mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 		{
 			Reanimation* aFireReanim = mApp->AddReanimation(mPosX + 38.0f, mPosY - 20.0f, mRenderOrder + 1, ReanimationType::REANIM_JALAPENO_FIRE);
 			aFireReanim->mAnimTime = 0.25f;

@@ -227,12 +227,16 @@ public:
 	bool							mCoinFaded;
 	int								mAchievementCoinCount;
 	int								mGargantuarsKilled;
+	int                             mDebugObjectSelection;
+	int                             mDebugObjectType;
+	int                             mDebugObjectLimit;
 
 public:
 	Board(LawnApp* theApp);
 	virtual ~Board();
 
 	void							DisposeBoard();
+	void                            LoadBackgroundDebug(BackgroundType theBackground);
 	int								CountSunBeingCollected();
 	void							DrawGameObjects(Graphics* g);
 	void							ClearCursor();
@@ -491,5 +495,13 @@ extern bool gShownMoreSunTutorial;
 int									GetRectOverlap(const Rect& rect1, const Rect& rect2);
 bool								GetCircleRectOverlap(int theCircleX, int theCircleY, int theRadius, const Rect& theRect);
 /*inline*/ void						BoardInitForPlayer();
+
+class BackgroundDefinition
+{
+public:
+	BackgroundType                      mBackgroundType; // zombie identifier ex: ZOMBIE_NORMAL
+	const SexyChar* mBackgroundName;
+};
+extern BackgroundDefinition gBackgroundDefs[NUM_ADVENTURE_BACKGROUNDS];
 
 #endif // __BOARD_H__

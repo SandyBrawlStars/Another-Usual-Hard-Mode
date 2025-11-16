@@ -2616,6 +2616,10 @@ bool LawnApp::HasSeedType(SeedType theSeedType)
 		{
 			return true;
 		}
+		if (theSeedType == SeedType::SEED_STAR_NUT)
+		{
+			return true;
+		}
 		if (theSeedType == SeedType::SEED_GIANT_WALLNUT)
 		{
 			return true;

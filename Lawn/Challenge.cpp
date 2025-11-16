@@ -31,7 +31,7 @@
 #include "../SexyAppFramework/WidgetManager.h"
 
 int gZombieWaves[NUM_LEVELS] = {  
-	10, 16,  8,  10, 8,  10, 20, 10, 20, 20,
+	10, 16,  18,  20, 14,  10, 20, 10, 20, 20,
 	10, 20, 10, 20, 10, 10, 20, 10, 20, 20,
 	10, 20, 20, 30, 20, 20, 30, 20, 30, 30,
 	10, 20, 10, 20, 20, 10, 20, 10, 20, 20,
@@ -1711,11 +1711,13 @@ void Challenge::UpdateConveyorBelt()
 	}
 	else if (mApp->IsWallnutBowlingLevel())
 	{
-		aSeedPickCount = 2;
+		aSeedPickCount = 3;
 		aSeedPickArray[0].mItem = SEED_WALLNUT;
-		aSeedPickArray[0].mWeight = 85;
+		aSeedPickArray[0].mWeight = 75;
+		aSeedPickArray[2].mItem = SEED_STAR_NUT;
+		aSeedPickArray[2].mWeight = 15;
 		aSeedPickArray[1].mItem = SEED_EXPLODE_O_NUT;
-		aSeedPickArray[1].mWeight = 15;
+		aSeedPickArray[1].mWeight = 10;
 	}
 	else if (mApp->IsLittleTroubleLevel())
 	{

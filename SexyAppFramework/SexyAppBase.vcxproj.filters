@@ -43,15 +43,6 @@
     <Filter Include="Lawn\Widget\Widget Source">
       <UniqueIdentifier>{6c745ea3-8764-4f7f-823f-3ceb8b03e0d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Lawn\Common">
-      <UniqueIdentifier>{b8608e44-5dce-42b2-bfda-cf2bc4cf2fdc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lawn\Common\Common Include">
-      <UniqueIdentifier>{f029acef-16dd-4c57-bb7e-db237da4757a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lawn\Common\Common Source">
-      <UniqueIdentifier>{b312a68f-1c95-4404-9dc1-db19d498f4c6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="TodLib\Common">
       <UniqueIdentifier>{db303042-a934-4c22-ab5b-a1085a43e25e}</UniqueIdentifier>
     </Filter>
@@ -138,6 +129,15 @@
     </Filter>
     <Filter Include="DiscordRPC\rapidjson\msinttypes">
       <UniqueIdentifier>{88d16067-8969-4723-b946-348e92e1e023}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lawn\Board\Board Source\Common">
+      <UniqueIdentifier>{b8608e44-5dce-42b2-bfda-cf2bc4cf2fdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lawn\Board\Board Source\Common\Common Include">
+      <UniqueIdentifier>{f029acef-16dd-4c57-bb7e-db237da4757a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lawn\Board\Board Source\Common\Common Source">
+      <UniqueIdentifier>{b312a68f-1c95-4404-9dc1-db19d498f4c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -800,10 +800,10 @@
       <Filter>Lawn\System\System Source</Filter>
     </ClCompile>
     <ClCompile Include="..\Lawn\LawnCommon.cpp">
-      <Filter>Lawn\Common\Common Source</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Source</Filter>
     </ClCompile>
     <ClCompile Include="..\Resources.cpp">
-      <Filter>Lawn\Common\Common Source</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Source</Filter>
     </ClCompile>
     <ClCompile Include="..\Lawn\System\ProfileMgr.cpp">
       <Filter>Lawn\System\System Source</Filter>
@@ -1391,19 +1391,19 @@
       <Filter>Lawn\System\System Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Lawn\BoardInclude.h">
-      <Filter>Lawn\Common\Common Include</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Include</Filter>
     </ClInclude>
     <ClInclude Include="..\ConstEnums.h">
-      <Filter>Lawn\Common\Common Include</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Include</Filter>
     </ClInclude>
     <ClInclude Include="..\GameConstants.h">
-      <Filter>Lawn\Common\Common Include</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Lawn\LawnCommon.h">
-      <Filter>Lawn\Common\Common Include</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Resources.h">
-      <Filter>Lawn\Common\Common Include</Filter>
+      <Filter>Lawn\Board\Board Source\Common\Common Include</Filter>
     </ClInclude>
     <ClInclude Include="..\Lawn\System\ProfileMgr.h">
       <Filter>Lawn\System\System Include</Filter>

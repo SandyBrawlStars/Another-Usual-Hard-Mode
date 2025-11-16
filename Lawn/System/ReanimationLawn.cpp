@@ -214,6 +214,12 @@ MemoryImage* ReanimatorCache::MakeCachedPlantFrame(SeedType theSeedType, DrawVar
 		aMemoryGraphics.SetColor(Color(255, 64, 64));
 		DrawReanimatorFrame(&aMemoryGraphics, -aOffsetX, -aOffsetY, aPlantDef.mReanimationType, "anim_idle", theDrawVariation);
 	}
+	else if (theSeedType == SeedType::SEED_STAR_NUT)
+	{
+		aMemoryGraphics.SetColorizeImages(true);
+		aMemoryGraphics.SetColor(Color(242, 222, 39));
+		DrawReanimatorFrame(&aMemoryGraphics, -aOffsetX, -aOffsetY, aPlantDef.mReanimationType, "anim_idle", theDrawVariation);
+	}
 	else
 	{
 		DrawReanimatorFrame(&aMemoryGraphics, -aOffsetX, -aOffsetY + (theSeedType == SeedType::SEED_IMITATER ? 5 : 0), aPlantDef.mReanimationType, "anim_idle", theDrawVariation);

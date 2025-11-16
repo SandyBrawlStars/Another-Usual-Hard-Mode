@@ -306,6 +306,12 @@ Explode-o-nut
 [EXPLODE_O_NUT_TOOLTIP]
 Explodes on contact
 
+[STAR_NUT]
+Starry-nut
+
+[STAR_NUT_TOOLTIP]
+Explodes Into Stars
+
 [GIANT_WALLNUT]
 Giant Wall-nut
 

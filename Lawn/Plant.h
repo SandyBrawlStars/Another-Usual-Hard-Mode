@@ -191,6 +191,9 @@ public:
     bool                    mHighlighted;   
     PlantVariant            mVariantType;
     Zombie*                 mSunTargetZombie;
+    int                     mPlantAge;
+    int                     mShotsCounter;
+    int                     mHealedFlashCounter;
 
 public:
     Plant();
@@ -256,6 +259,7 @@ public:
     void                    UpdateShooting();
     void                    DrawShadow(Graphics* g, float theOffsetX, float theOffsetY);
     void                    UpdateScaredyShroom();
+    void                    UpdateVariants();
     int                     DistanceToClosestZombie();
     void                    UpdateSpikeweed();
     void                    MagnetShroomAttactItem(Zombie* theZombie);
@@ -295,6 +299,7 @@ public:
     void                    GoldMagnetFindTargets();
     bool                    IsAGoldMagnetAboutToSuck();
     bool                    DrawMagnetItemsOnTop();
+    void                    UpdatePumpkin();
 };
 
 float                       PlantDrawHeightOffset(Board* theBoard, Plant* thePlant, SeedType theSeedType, int theCol, int theRow);
