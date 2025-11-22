@@ -677,7 +677,7 @@ void Board::PickZombieWaves()
 		}
 		else if (mApp->IsWallnutBowlingLevel())
 		{
-			aZombiePoints *= 4.5;
+			aZombiePoints *= 4.7;
 		}
 		else if (mApp->IsLittleTroubleLevel())
 		{
@@ -4929,6 +4929,10 @@ void Board::SpawnZombieWave()
 					AddZombie(ZombieType::ZOMBIE_NORMAL, mCurrentWave);  
 				}
 			}
+			else if (aZombieType == ZombieType::ZOMBIE_NORMAL && (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS))
+			{
+				AddZombie(ZombieType::ZOMBIE_PEA_HEAD, mCurrentWave);
+			}
 			else
 			{
 				AddZombie(aZombieType, mCurrentWave);
@@ -8287,6 +8291,10 @@ void Board::KeyChar(SexyChar theChar)
 	{
 		mDebugObjectLimit = NUM_GRID_ITEM_TYPES - 1;
 	}
+	if (mDebugObjectType == 7)
+	{
+		mDebugObjectLimit = NUM_ZOMBIE_VARIANTS - 1;
+	}
 
 	int aMouseX = mApp->mWidgetManager->mLastMouseX - mX;
 	int aMouseY = mApp->mWidgetManager->mLastMouseY - mY;
@@ -8340,6 +8348,11 @@ void Board::KeyChar(SexyChar theChar)
 			string aName = gGridItemDefs[mDebugObjectSelection].mItemName;
 			DisplayAdvice("Selected Grid Item Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
 		}
+		else if (mDebugObjectType == 7)
+		{
+			string aName = gZombieVariantDefs[mDebugObjectSelection].mVariantName;
+			DisplayAdvice("Selected Zombie Variant " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
 		return;
 	}
 
@@ -8390,17 +8403,22 @@ void Board::KeyChar(SexyChar theChar)
 			string aName = gGridItemDefs[mDebugObjectSelection].mItemName;
 			DisplayAdvice("Selected Grid Item Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
 		}
+		else if (mDebugObjectType == 7)
+		{
+			string aName = gZombieVariantDefs[mDebugObjectSelection].mVariantName;
+			DisplayAdvice("Selected Zombie Variant " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
+		}
 		return;
 	}
 
 	if (theChar == _S('s'))
 	{
 		mDebugObjectType++;
-		if (mDebugObjectType > 6)
+		if (mDebugObjectType > 7)
 		{
 			mDebugObjectType = 0;
 		}
-		string aName = mDebugObjectType == 0 ? "Zombie" : mDebugObjectType == 1 ? "Plant" : mDebugObjectType == 2 ? "Coin" : mDebugObjectType == 3 ? "Projectile" : mDebugObjectType == 4 ? "Background" : mDebugObjectType == 5 ? "Hypno Zombie" : mDebugObjectType == 6 ? "Grid Item" : "Nothing";
+		string aName = mDebugObjectType == 0 ? "Zombie" : mDebugObjectType == 1 ? "Plant" : mDebugObjectType == 2 ? "Coin" : mDebugObjectType == 3 ? "Projectile" : mDebugObjectType == 4 ? "Background" : mDebugObjectType == 5 ? "Hypno Zombie" : mDebugObjectType == 6 ? "Grid Item" : mDebugObjectType == 7 ? "Zombie Variant" : "Nothing";
 		DisplayAdvice("Selected Object Type " + aName, MessageStyle::MESSAGE_STYLE_HINT_LONG, AdviceType::ADVICE_NONE);
 		return;
 	}
@@ -8497,6 +8515,16 @@ void Board::KeyChar(SexyChar theChar)
 				aGraveStone->mGridItemState = GridItemState::GRIDITEM_STATE_SCARY_POT_ZOMBIE;
 				aGraveStone->mSunCount = 5;
 			}
+			return;
+
+		}
+		if (mDebugObjectType == 7)
+		{
+
+			ZombieVariant aDebugVariantType = static_cast<ZombieVariant>(mDebugObjectSelection);
+			ZombieType aDebugZombieType = gZombieVariantDefs[mDebugObjectSelection].mZombieType;
+			Zombie* aZombie = AddZombieInRow(aDebugZombieType, aGridY, Zombie::ZOMBIE_WAVE_DEBUG);
+			aZombie->StartVariant(aDebugVariantType);
 			return;
 
 		}
@@ -9568,6 +9596,18 @@ void Board::KillAllPlantsInRadius(int theX, int theY, int theRadius)
 		{
 			mPlantsEaten++;
 			aPlant->Die();
+		}
+	}
+}
+
+void Board::DamageAllPlantsInRadius(int theX, int theY, int theRadius, int theDamage)
+{
+	Plant* aPlant = nullptr;
+	while (IteratePlants(aPlant))
+	{
+		if (GetCircleRectOverlap(theX, theY, theRadius, aPlant->GetPlantRect()))
+		{
+			aPlant->mPlantHealth -= theDamage;
 		}
 	}
 }

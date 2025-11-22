@@ -2529,6 +2529,10 @@ void Plant::UpdateBowling()
             mApp->PlayFoley(FoleyType::FOLEY_SPAWN_SUN);
             mApp->PlaySample(SOUND_BOWLINGIMPACT2);
             mApp->AddTodParticle(aPosX, aPosY, (int)RenderLayer::RENDER_LAYER_TOP, ParticleEffect::PARTICLE_POTATO_MINE);
+            if (aZombie->mShieldType != ShieldType::SHIELDTYPE_NONE)
+            {
+                aZombie->TakeShieldDamage(400, 0U);
+            }
 
             for (int i = 0; i < 20; i++)
             {
@@ -2851,6 +2855,14 @@ void Plant::UpdateReanimColor()
     else if (mVariantType == PlantVariant::SEED_VARIANT_MULTIMINE)
     {
         aColorOverride = Color(53, 230, 191);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_POISONPEA)
+    {
+        aColorOverride = Color(46, 255, 46);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_WINDPEA)
+    {
+        aColorOverride = Color(190, 92, 250);
     }
     else if (mVariantType == PlantVariant::SEED_VARIANT_CRYOCHERRY)
     {
@@ -4432,8 +4444,8 @@ void Plant::MouseDown(int x, int y, int theClickCount)
             if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
             {
                 mVariantType = PlantVariant::SEED_VARIANT_HYPNOFLOWER;
-                mLaunchRate = 3500;
-                mLaunchCounter = 3400;
+                mLaunchRate = 5000;
+                mLaunchCounter = 4900;
             }
             else if (mVariantType == PlantVariant::SEED_VARIANT_HYPNOFLOWER)
             {
@@ -4490,6 +4502,24 @@ void Plant::MouseDown(int x, int y, int theClickCount)
             else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
             {
                 mVariantType = PlantVariant::SEED_VARIANT_MULTIMINE;
+            }
+        }
+        if (mSeedType == SeedType::SEED_SNOWPEA)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_POISONPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_WINDPEA;
+                mLaunchCounter = 200;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_WINDPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchCounter = 150;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_POISONPEA;
+                mLaunchCounter = 160;
             }
         }
     }
@@ -5046,6 +5076,21 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
     aProjectile->mDamageRangeFlags = GetDamageRangeFlags(thePlantWeapon);
 
     mShotsCounter++;
+
+    if (mVariantType == PlantVariant::SEED_VARIANT_POISONPEA)
+    {
+        aProjectile->mPoisonOverride = 299;
+        aProjectile->mDamageOverride = 15;
+        aProjectile->mChillOverride = 0;
+    }
+
+    if (mVariantType == PlantVariant::SEED_VARIANT_WINDPEA)
+    {
+        aProjectile->mChillOverride = 170;
+        aProjectile->mDamageOverride = 0;
+        aProjectile->mPierces = true;
+        aProjectile->mPierceLeft = 999;
+    }
 
     if (aProjectile->mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
     {

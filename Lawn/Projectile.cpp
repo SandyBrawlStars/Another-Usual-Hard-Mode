@@ -27,6 +27,7 @@ ProjectileDefinition gProjectileDefinition[] = {
 	{ ProjectileType::PROJECTILE_BUTTER,        0,  40,  _S("BUTTER")  },
 	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20,  _S("ZOMBIE_PEA")  },
 	{ ProjectileType::PROJECTILE_ELECTRO_PEA,    0,  20,  _S("ELECTRO_PEA") },
+	{ ProjectileType::PROJECTILE_JACKBOX,    0,  200,  _S("JACK_BOX") },
 };
 
 Projectile::Projectile()
@@ -79,6 +80,11 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mPierceLeft = 3;
 	mZombieLast = nullptr;
 	mPierces = false;
+	mKnockback = 0.0f;
+	mChillOverride = -1;
+	mDamageOverride = -1;
+	mPoisonOverride = -1;
+
 	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 	{
 		mPierces = true;
@@ -398,18 +404,22 @@ unsigned int Projectile::GetDamageFlags(Zombie* theZombie)
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
 	}
-	else if (mMotionType == ProjectileMotion::MOTION_STAR && mVelX < 0.0f)
+	else if (mPierces)
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
 	}
-	else if (mPierces)
+	else if (mMotionType == ProjectileMotion::MOTION_STAR && mVelX < 0.0f)
 	{
-		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_HITS_SHIELD_AND_BODY, true);
+		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
 	}
 
 	if (mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_FREEZE, true);
+	}
+	if (mChillOverride >= 0)
+	{
+		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_FREEZE, false);
 	}
 
 	return aDamageFlags;
@@ -536,6 +546,10 @@ void Projectile::UpdateLobMotion()
 			aMinCollisionZ = -32.0f;
 		}
 		else if (mProjectileType == ProjectileType::PROJECTILE_BASKETBALL)
+		{
+			aMinCollisionZ = 60.0f;
+		}
+		else if (mProjectileType == ProjectileType::PROJECTILE_JACKBOX)
 		{
 			aMinCollisionZ = 60.0f;
 		}
@@ -804,6 +818,11 @@ void Projectile::PlayImpactSound(Zombie* theZombie)
 		mApp->PlayFoley(FoleyType::FOLEY_MELONIMPACT);
 		aPlaySplatSound = false;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_JACKBOX)
+	{
+		mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+		aPlaySplatSound = false;
+	}
 
 	if (aPlayHelmSound && theZombie)
 	{
@@ -844,14 +863,51 @@ void Projectile::DoImpact(Zombie* theZombie)
 		{
 			if (mZombieLast != theZombie)
 			{
-				theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+				if (mDamageOverride >= 0)
+				{
+					theZombie->TakeDamage(mDamageOverride, aDamageFlags);
+				}
+				else
+				{
+					theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+				}
 				mPierceLeft--;
 				mZombieLast = theZombie;
 			}
 		}
 		else
 		{
-			theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+			if (mDamageOverride >= 0)
+			{
+				theZombie->TakeDamage(mDamageOverride, aDamageFlags);
+			}
+			else
+			{
+				theZombie->TakeDamage(GetProjectileDef().mDamage, aDamageFlags);
+			}
+		}
+		if (mKnockback != 0)
+		{
+			theZombie->mPosX += mKnockback;
+		}
+		if (mChillOverride >= 0)
+		{
+			if (theZombie->CanBeChilled())
+			{
+				if (theZombie->mChilledCounter == 0 && mChillOverride > 0)
+				{
+					mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
+				}
+
+				theZombie->mChilledCounter = max(mChillOverride, theZombie->mChilledCounter);
+
+				theZombie->UpdateAnimSpeed();
+			}
+		}
+		if (mPoisonOverride >= 0)
+		{
+			theZombie->mPoisonedCounter = max(mPoisonOverride, theZombie->mPoisonedCounter);
+			theZombie->mPoisonStack = ClampInt(theZombie->mPoisonStack + 1, 0, 10);
 		}
 	}
 
@@ -863,6 +919,12 @@ void Projectile::DoImpact(Zombie* theZombie)
 	if (mProjectileType == ProjectileType::PROJECTILE_MELON)
 	{
 		mApp->AddTodParticle(aLastPosX + 30.0f, aLastPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_MELONSPLASH);
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_JACKBOX)
+	{
+		mApp->AddTodParticle(aLastPosX + 30.0f, aLastPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+		mBoard->ShakeBoard(3, -4);
+		mBoard->DamageAllPlantsInRadius(mPosX, mPosY + 80, 100, 301);
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 	{
@@ -985,6 +1047,7 @@ void Projectile::Update()
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || 
 		mProjectileType == ProjectileType::PROJECTILE_CABBAGE || 
 		mProjectileType == ProjectileType::PROJECTILE_MELON || 
+		mProjectileType == ProjectileType::PROJECTILE_JACKBOX ||
 		mProjectileType == ProjectileType::PROJECTILE_WINTERMELON || 
 		mProjectileType == ProjectileType::PROJECTILE_KERNEL || 
 		mProjectileType == ProjectileType::PROJECTILE_BUTTER || 
@@ -1069,6 +1132,11 @@ void Projectile::Draw(Graphics* g)
 	{
 		aImage = IMAGE_REANIM_MELONPULT_MELON;
 		aScale = 1.0f;
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_JACKBOX)
+	{
+		aImage = IMAGE_REANIM_ZOMBIE_JACKBOX_BOX;
+		aScale = 0.7f;
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 	{

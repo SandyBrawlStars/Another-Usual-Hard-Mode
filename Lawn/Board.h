@@ -353,6 +353,7 @@ public:
 	void							DrawUIBottom(Graphics* g);
 	void							DrawUITop(Graphics* g);
 	void							KillAllPlantsInRadius(int theX, int theY, int theRadius);
+	void							DamageAllPlantsInRadius(int theX, int theY, int theRadius, int theDamage);
 	Plant*							GetPumpkinAt(int theGridX, int theGridY);
 	Plant*							GetFlowerPotAt(int theGridX, int theGridY);
 	bool							LawnHasNocturnal();

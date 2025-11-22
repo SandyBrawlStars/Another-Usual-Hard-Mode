@@ -163,6 +163,8 @@ public:
     ReanimationID                   mMoweredReanimID;                           
     int                             mLastPortalX;     
     ZombieVariant                   mVariantType;
+    int                             mPoisonedCounter;
+    int                             mPoisonStack;
 
 public:
     Zombie();
@@ -250,6 +252,7 @@ public:
     void                            StartEating();
     void                            StopEating();
     void                            UpdateAnimSpeed();
+    void                            StartVariant(ZombieVariant theVariant);
     /*inline*/ void                 ReanimShowPrefix(const char* theTrackPrefix, int theRenderGroup);
     void                            PlayDeathAnim(unsigned int theDamageFlags);
     void                            UpdateDeath();
@@ -408,6 +411,15 @@ public:
     const SexyChar*                 mZombieName; // the name
 };
 extern ZombieDefinition gZombieDefs[NUM_ZOMBIE_TYPES];  
+
+class ZombieVariantDefinition
+{
+public:
+    ZombieVariant                      mVariantType; // zombie identifier ex: ZOMBIE_NORMAL
+    const SexyChar* mVariantName; // the name
+    ZombieType                         mZombieType;
+};
+extern ZombieVariantDefinition gZombieVariantDefs[NUM_ZOMBIE_VARIANTS];
 
 /*inline*/ ZombieDefinition&            GetZombieDefinition(ZombieType theZombieType);
 

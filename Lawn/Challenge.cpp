@@ -31,7 +31,7 @@
 #include "../SexyAppFramework/WidgetManager.h"
 
 int gZombieWaves[NUM_LEVELS] = {  
-	10, 16,  18,  20, 14,  10, 20, 10, 20, 20,
+	10, 16,  18,  20, 14,  17, 20, 10, 20, 20,
 	10, 20, 10, 20, 10, 10, 20, 10, 20, 20,
 	10, 20, 20, 30, 20, 20, 30, 20, 30, 30,
 	10, 20, 10, 20, 20, 10, 20, 10, 20, 20,
@@ -249,13 +249,55 @@ ZombieAllowedLevels gZombieAllowedLevels[NUM_ZOMBIE_TYPES] = {
 		}
 	},
 	{ ZOMBIE_BOSS, {0} },
-	{ ZOMBIE_REDEYE_GARGANTUAR, {0} },
-	{ ZOMBIE_PEA_HEAD, {0} },
-	{ ZOMBIE_WALLNUT_HEAD, {0} },
-	{ ZOMBIE_JALAPENO_HEAD, {0} },
-	{ ZOMBIE_GATLING_HEAD, {0} },
-	{ ZOMBIE_SQUASH_HEAD, {0} },
-	{ ZOMBIE_TALLNUT_HEAD, {0} }
+	{ ZOMBIE_REDEYE_GARGANTUAR, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_PEA_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_WALLNUT_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_JALAPENO_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_GATLING_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_SQUASH_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_TALLNUT_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} }
 };
 
 SeedType gArtChallengeWallnut[MAX_GRID_SIZE_Y][MAX_GRID_SIZE_X] = {  
@@ -2625,11 +2667,13 @@ void Challenge::InitZombieWaves()
 	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS)
 	{
 		aList[ZOMBIE_PEA_HEAD] = true;
+		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_WALLNUT_HEAD] = true;
 	}
 	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_2)
 	{
 		aList[ZOMBIE_PEA_HEAD] = true;
+		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_WALLNUT_HEAD] = true;
 		aList[ZOMBIE_JALAPENO_HEAD] = true;
 		aList[ZOMBIE_GATLING_HEAD] = true;

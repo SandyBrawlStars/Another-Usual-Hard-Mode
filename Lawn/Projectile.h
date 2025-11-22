@@ -58,6 +58,11 @@ public:
     float                   mOriginalY;
     float                   mMagnetDegree;
     bool                    mPierces;
+    float                   mKnockback;
+    int                     mChillOverride;
+    int                     mDamageOverride;
+    int                     mPoisonOverride;
+
 
 public:
     Projectile();
