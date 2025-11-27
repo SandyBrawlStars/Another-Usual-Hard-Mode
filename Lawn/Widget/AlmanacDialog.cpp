@@ -744,7 +744,12 @@ int AlmanacDialog::ZombieIsShown(ZombieType theZombieType)
 	}
 	else if (theZombieType > ZombieType::ZOMBIE_BOSS)
 	{
-		return true;
+		if (mApp->HasFinishedAdventure())
+			return true;
+
+		int aLevel = mApp->mPlayerInfo->mLevel;
+		int aStart = GetZombieDefinition(theZombieType).mStartingLevel;
+		return aStart <= aLevel && (aStart != aLevel || !Board::IsZombieTypeSpawnedOnly(theZombieType) || gZombieDefeated[theZombieType]);
 	}
 	return false;
 }

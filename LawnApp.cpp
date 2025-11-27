@@ -2740,7 +2740,7 @@ bool LawnApp::CanShowAlmanac()
 	if (mPlayerInfo == nullptr)
 		return false;
 
-	return HasFinishedAdventure() || mPlayerInfo->mLevel >= 15;
+	return true;
 }
 
 bool LawnApp::CanShowStore()

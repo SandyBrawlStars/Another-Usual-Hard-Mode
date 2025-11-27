@@ -62,6 +62,8 @@ public:
     int                     mChillOverride;
     int                     mDamageOverride;
     int                     mPoisonOverride;
+    int                     mMaxPoison;
+    bool                    mSplits;
 
 
 public:

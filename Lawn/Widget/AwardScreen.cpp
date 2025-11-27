@@ -146,8 +146,6 @@ AwardScreen::AwardScreen(LawnApp* theApp, AwardType theAwardType, bool hasAchiev
         mMenuButton->mBtnNoDraw = true;
         mMenuButton->mDisabled = true;
     }
-    else if (aLevel == 15)
-        mStartButton->SetLabel("[VIEW_ALMANAC_BUTTON]");
     else if (aLevel == 25 || aLevel == 35 || aLevel == 45)
         mStartButton->SetLabel("[CONTINUE_BUTTON]");
     else
@@ -324,8 +322,8 @@ void AwardScreen::Draw(Graphics* g)
         }
         else if (aLevel == 15)
         {
-            DrawBottom(g, _S("[FOUND_SUBURBAN_ALMANAC]"), _S("[SUBURBAN_ALMANAC]"), _S("[SUBURBAN_ALMANAC_DESCRIPTION]"));
-            g->DrawImage(Sexy::IMAGE_ALMANAC, BOARD_WIDTH / 2 - Sexy::IMAGE_ALMANAC->mWidth / 2, 160);
+            DrawBottom(g, _S("You found a bag of money"), _S("Money Bag"), _S("It's a bag. with money."));
+            g->DrawImage(Sexy::IMAGE_MONEYBAG, BOARD_WIDTH / 2 - Sexy::IMAGE_MONEYBAG->mWidth / 2, 160);
         }
         else if (aLevel == 20)
         {
@@ -433,8 +431,6 @@ void AwardScreen::Draw(Graphics* g)
         {
             mStartButton->SetLabel("[CONTINUE_BUTTON]");
         }
-        else if (aLevel == 15)
-            mStartButton->SetLabel("[VIEW_ALMANAC_BUTTON]");
         else if (aLevel == 25 || aLevel == 35 || aLevel == 45)
             mStartButton->SetLabel("[CONTINUE_BUTTON]");
         else
@@ -544,11 +540,7 @@ void AwardScreen::ExitScreen()
         }
         else
         {
-            if (aLevel == 15)
-            {
-                mApp->DoAlmanacDialog()->WaitForResult();
-            }
-            else if (aLevel == 25)
+            if (aLevel == 25)
             {
                 StoreScreen* aStore = mApp->ShowStoreScreen();
                 aStore->SetupForIntro(301);

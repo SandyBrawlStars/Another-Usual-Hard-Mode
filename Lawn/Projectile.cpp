@@ -10,6 +10,7 @@
 #include "../Sexy.TodLib/TodDebug.h"
 #include "../Sexy.TodLib/Reanimator.h"
 #include "../Sexy.TodLib/Attachment.h"
+#include "../Sexy.TodLib/TodParticle.h"
 
 ProjectileDefinition gProjectileDefinition[] = {
 	{ ProjectileType::PROJECTILE_PEA,           0,  20,  _S("PEA")},
@@ -28,6 +29,8 @@ ProjectileDefinition gProjectileDefinition[] = {
 	{ ProjectileType::PROJECTILE_ZOMBIE_PEA,    0,  20,  _S("ZOMBIE_PEA")  },
 	{ ProjectileType::PROJECTILE_ELECTRO_PEA,    0,  20,  _S("ELECTRO_PEA") },
 	{ ProjectileType::PROJECTILE_JACKBOX,    0,  200,  _S("JACK_BOX") },
+	{ ProjectileType::PROJECTILE_BUCKET,    0,  0,  _S("BUCKET") },
+	{ ProjectileType::PROJECTILE_ZOMBIE_CABBAGE,       0,  40,  _S("ZOMBIE_CABBAGE")  },
 };
 
 Projectile::Projectile()
@@ -84,13 +87,15 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mChillOverride = -1;
 	mDamageOverride = -1;
 	mPoisonOverride = -1;
+	mMaxPoison = 10;
+	mSplits = false;
 
 	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 	{
 		mPierces = true;
 	}
 
-	if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_BUTTER)
+	if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_BUTTER)
 	{
 		mRotation = -7 * PI / 25;  // DEG_TO_RAD(-50.4f);
 		mRotationSpeed = RandRangeFloat(-0.08f, -0.02f);
@@ -553,11 +558,15 @@ void Projectile::UpdateLobMotion()
 		{
 			aMinCollisionZ = 60.0f;
 		}
+		else if (mProjectileType == ProjectileType::PROJECTILE_BUCKET)
+		{
+			aMinCollisionZ = 60.0f;
+		}
 		else if (mProjectileType == ProjectileType::PROJECTILE_MELON || mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 		{
 			aMinCollisionZ = -35.0f;
 		}
-		else if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_KERNEL)
+		else if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_KERNEL)
 		{
 			aMinCollisionZ = -30.0f;
 		}
@@ -578,7 +587,7 @@ void Projectile::UpdateLobMotion()
 
 	Plant* aPlant = nullptr;
 	Zombie* aZombie = nullptr;
-	if (mProjectileType == ProjectileType::PROJECTILE_BASKETBALL || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+	if (mProjectileType == ProjectileType::PROJECTILE_BASKETBALL || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
 	{
 		aPlant = FindCollisionTargetPlant();
 	}
@@ -823,6 +832,11 @@ void Projectile::PlayImpactSound(Zombie* theZombie)
 		mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
 		aPlaySplatSound = false;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_BUCKET)
+	{
+		mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+		aPlaySplatSound = false;
+	}
 
 	if (aPlayHelmSound && theZombie)
 	{
@@ -894,7 +908,7 @@ void Projectile::DoImpact(Zombie* theZombie)
 		{
 			if (theZombie->CanBeChilled())
 			{
-				if (theZombie->mChilledCounter == 0 && mChillOverride > 0)
+				if (theZombie->mChilledCounter == 0 && mChillOverride > 300)
 				{
 					mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
 				}
@@ -907,7 +921,10 @@ void Projectile::DoImpact(Zombie* theZombie)
 		if (mPoisonOverride >= 0)
 		{
 			theZombie->mPoisonedCounter = max(mPoisonOverride, theZombie->mPoisonedCounter);
-			theZombie->mPoisonStack = ClampInt(theZombie->mPoisonStack + 1, 0, 10);
+			if (theZombie->mPoisonStack < mMaxPoison)
+			{
+				theZombie->mPoisonStack++;
+			}
 		}
 	}
 
@@ -925,6 +942,22 @@ void Projectile::DoImpact(Zombie* theZombie)
 		mApp->AddTodParticle(aLastPosX + 30.0f, aLastPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
 		mBoard->ShakeBoard(3, -4);
 		mBoard->DamageAllPlantsInRadius(mPosX, mPosY + 80, 100, 301);
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_BUCKET)
+	{
+		TodParticleSystem* aParticle = mApp->AddTodParticle(aLastPosX + 30.0f, aLastPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+		aParticle->OverrideColor(nullptr, Color(242, 19, 15));
+		mBoard->ShakeBoard(3, -4);
+		Zombie* aZombie = nullptr;
+		while (mBoard->IterateZombies(aZombie))
+		{
+			int aRowDif = aZombie->mRow - mRow;
+			int aColDif = mBoard->PixelToGridXKeepOnBoard(aZombie->mPosX, aZombie->mPosY) - mBoard->PixelToGridXKeepOnBoard(mPosX, mPosY);
+			if (abs(aRowDif) <= 1 && abs(aColDif) <= 1)
+			{
+				aZombie->mBucketBoosted = true;
+			}
+		}
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 	{
@@ -978,6 +1011,12 @@ void Projectile::DoImpact(Zombie* theZombie)
 		aSplatPosY = aLastPosY + 23.0f;
 		aEffect = ParticleEffect::PARTICLE_CABBAGE_SPLAT;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE)
+	{
+		aSplatPosX = aLastPosX - 38.0f;
+		aSplatPosY = aLastPosY + 23.0f;
+		aEffect = ParticleEffect::PARTICLE_CABBAGE_SPLAT;
+	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_BUTTER)
 	{
 		aSplatPosX = aLastPosX - 20.0f;
@@ -1021,6 +1060,23 @@ void Projectile::DoImpact(Zombie* theZombie)
 	if (!mPierces)
 	{
 		Die();
+		if (mSplits)
+		{
+			Projectile* aProjectile = mBoard->AddProjectile(mPosX , mPosY , mRenderOrder - 1, mRow, mProjectileType);
+			aProjectile->mDamageRangeFlags = 1;
+			aProjectile->mMotionType = ProjectileMotion::MOTION_STAR;
+			aProjectile->mVelX = 2.0f;
+			aProjectile->mVelY = 2.0f;
+			aProjectile->mDamageOverride = 5;
+			aProjectile->mPierces = true;
+			Projectile* aProjectile2 = mBoard->AddProjectile(mPosX , mPosY, mRenderOrder - 1, mRow, mProjectileType);
+			aProjectile2->mDamageRangeFlags = 1;
+			aProjectile2->mMotionType = ProjectileMotion::MOTION_STAR;
+			aProjectile2->mVelX = 2.0f;
+			aProjectile2->mVelY = -2.0f;
+			aProjectile2->mDamageOverride = 5;
+			aProjectile2->mPierces = true;
+		}
 	}
 	else
 	{
@@ -1046,8 +1102,10 @@ void Projectile::Update()
 		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || 
 		mProjectileType == ProjectileType::PROJECTILE_CABBAGE || 
+		mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE ||
 		mProjectileType == ProjectileType::PROJECTILE_MELON || 
 		mProjectileType == ProjectileType::PROJECTILE_JACKBOX ||
+		mProjectileType == ProjectileType::PROJECTILE_BUCKET ||
 		mProjectileType == ProjectileType::PROJECTILE_WINTERMELON || 
 		mProjectileType == ProjectileType::PROJECTILE_KERNEL || 
 		mProjectileType == ProjectileType::PROJECTILE_BUTTER || 
@@ -1118,6 +1176,11 @@ void Projectile::Draw(Graphics* g)
 		aImage = IMAGE_REANIM_CABBAGEPULT_CABBAGE;
 		aScale = 1.0f;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE)
+	{
+		aImage = IMAGE_REANIM_CABBAGEPULT_CABBAGE;
+		aScale = 1.0f;
+	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_KERNEL)
 	{
 		aImage = IMAGE_REANIM_CORNPULT_KERNAL;
@@ -1136,6 +1199,11 @@ void Projectile::Draw(Graphics* g)
 	else if (mProjectileType == ProjectileType::PROJECTILE_JACKBOX)
 	{
 		aImage = IMAGE_REANIM_ZOMBIE_JACKBOX_BOX;
+		aScale = 0.7f;
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_BUCKET)
+	{
+		aImage = IMAGE_REANIM_ZOMBIE_BUCKET3;
 		aScale = 0.7f;
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
@@ -1239,6 +1307,7 @@ void Projectile::DrawShadow(Graphics* g)
 		break;
 
 	case ProjectileType::PROJECTILE_CABBAGE:
+	case ProjectileType::PROJECTILE_ZOMBIE_CABBAGE:
 	case ProjectileType::PROJECTILE_KERNEL:
 	case ProjectileType::PROJECTILE_BUTTER:
 	case ProjectileType::PROJECTILE_MELON:

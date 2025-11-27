@@ -416,8 +416,17 @@ Peashooters are your first line of defense. They shoot peas at attacking zombies
 
 [PEASHOOTER_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} normal
+{KEYWORD}Damage:{STAT} 20/1.5s
 {SHORTLINE}
+{KEYWORD}Variant 1 (Fire-Pea):{STAT}
+{KEYWORD}   Damage:{STAT} 40/4.5s
+{KEYWORD}   Special:{STAT} Splash Damage
+{SHORTLINE}
+{KEYWORD}Variant 2 (Electro-Pea):{STAT}
+{KEYWORD}   Damage:{STAT} 20/3.5s
+{KEYWORD}   Special:{STAT} Pierces Two Zombies
+{SHORTLINE}
+
 {FLAVOR}How can a single plant grow and shoot so many peas so quickly? Peashooter says, 
 "Hard work, commitment, and a healthy, well-balanced breakfast of sunlight and high-fiber
 carbon dioxide make it all possible."
@@ -427,8 +436,18 @@ Sunflowers are essential for you to produce extra sun. Try planting as many as y
 
 [SUNFLOWER_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Sun production:{STAT} normal
+{KEYWORD}Sun production:{STAT} 25/25s
 {SHORTLINE}
+{KEYWORD}Variant 1 (Sun-Blaster):{STAT}
+{KEYWORD}   Damage:{STAT} 1800/20s
+{KEYWORD}   Sun Production:{STAT} -75/20s
+{KEYWORD}   Special:{STAT} Uses 75 Sun to Explode the closest, highest health zombie
+{SHORTLINE}
+{KEYWORD}Variant 2 (Hypno-Flower):{STAT}
+{KEYWORD}   Sun Production:{STAT} 0/50s
+{KEYWORD}   Special:{STAT} Spawns a hypnotised basic zombie every 50 seconds, doesn't produce sun
+{SHORTLINE}
+
 {FLAVOR}Sunflower can't resist bouncing to the beat. Which beat is that? Why, the 
 life-giving jazzy rhythm of the Earth itself, thumping at a frequency only Sunflower can hear.
 
@@ -437,7 +456,17 @@ Wall-nuts have hard shells which you can use to protect your other plants.
 
 [WALL_NUT_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} high
+{KEYWORD}Toughness:{STAT} 4000
+{SHORTLINE}
+{KEYWORD}Variant 1 (Starry-Nut):{STAT}
+{KEYWORD}   Damage:{STAT} 20/2.25s
+{KEYWORD}   Toughness:{STAT} 2000
+{KEYWORD}   Special:{STAT} Spawns stars to orbit it and hit zombies, max of 5 stars
+{SHORTLINE}
+{KEYWORD}Variant 2 (Nut-rient):{STAT}
+{KEYWORD}   Toughness:{STAT} 1000
+{KEYWORD}   Healing:{STAT} 25/5s
+{KEYWORD}   Special:{STAT} Heals plants in a 3x3 area every 5 seconds
 {SHORTLINE}
 {FLAVOR}"People wonder how I feel about getting constantly chewed on by zombies," says Wall-nut. 
 "What they don't realize is that with my limited senses all I can feel is a kind of tingling, like a relaxing back rub."
@@ -447,9 +476,13 @@ Cherry Bombs can blow up all zombies in an area. They have a short fuse so plant
 
 [CHERRY_BOMB_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} massive
-{KEYWORD}Range:{STAT} all zombies in a medium area
+{KEYWORD}Damage:{STAT} 1800 (Explosion)
+{KEYWORD}Range:{STAT} 3x3
 {KEYWORD}Usage:{STAT} single use, instant
+{SHORTLINE}
+{KEYWORD}Variant 1 (Cryo-Cherry):{STAT}
+{KEYWORD}   Damage:{STAT} 800 (3x3), 200 (5x5)
+{KEYWORD}   Special:{STAT} Freezes Zombies in 5x5 Range
 {SHORTLINE}
 {FLAVOR}"I wanna explode," says Cherry #1. "No, let's detonate instead!" says 
 his brother, Cherry #2. After intense consultation they agree to explodonate.
@@ -459,9 +492,14 @@ Potato Mines pack a powerful punch, but they need a while to arm themselves. You
 
 [POTATO_MINE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} massive
-{KEYWORD}Range:{STAT} all zombies in a small area
+{KEYWORD}Damage:{STAT} 1800
+{KEYWORD}Range:{STAT} 1x1
 {KEYWORD}Usage:{STAT} single use, delayed activation
+{SHORTLINE}
+{KEYWORD}Variant 1 (Multi-Mine):{STAT}
+{KEYWORD}   Damage:{STAT} 70 (3x3)
+{KEYWORD}   Knockback:{STAT} 30 Units
+{KEYWORD}   Special:{STAT} Can damage and knockback multiple times, but loses 35 health for each zombie in blast radius
 {SHORTLINE}
 {FLAVOR}Some folks say Potato Mine is lazy, that he leaves everything to the last 
 minute. Potato Mine says nothing. He's too busy thinking about his investment strategy.
@@ -471,9 +509,18 @@ Repeaters fire two peas at a time.
 
 [REPEATER_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} normal (for each pea)
-{KEYWORD}Firing speed:{STAT} 2x
+{KEYWORD}Damage:{STAT} 20*2/1.5s
 {SHORTLINE}
+{KEYWORD}Variant 1 (Primal Repeater):{STAT}
+{KEYWORD}   Damage:{STAT} 17/2.3s
+{KEYWORD}   Knockback:{STAT} 9 units per pea
+{SHORTLINE}
+{KEYWORD}Variant 2 (Divide-peater):{STAT}
+{KEYWORD}   Damage:{STAT} 15/1.8s
+{KEYWORD}   Special:{STAT} Projectiles split into two piercing projectiles with an angle that deal 5 damage each
+{SHORTLINE}
+
+
 {FLAVOR}Repeater is fierce. He's from the streets. He doesn't take attitude from anybody, 
 plant or zombie, and he shoots peas to keep people at a distance. Secretly, though, Repeater yearns for love.
 
@@ -482,8 +529,21 @@ Snow Peas shoot frozen peas that damage and slow the enemy.
 
 [SNOW_PEA_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} normal, slows zombies
+{KEYWORD}Damage:{STAT} 20/1.5s
+{KEYWORD}Chill:{STAT} 10s
+
 {SHORTLINE}
+{KEYWORD}Variant 1 (Poison-Pea):{STAT}
+{KEYWORD}   Damage:{STAT} 15/1.6s
+{KEYWORD}   Special:{STAT} Doesn't chill, poisons zombies instead
+{KEYWORD}   Poison System:{STAT} Every 0.75s, zombies take 5 damage for every 3 poison points
+{KEYWORD}   Poison:{STAT} 2.9s Duration, 1 Poison Point (Stacks to 10 points)
+{SHORTLINE}
+{KEYWORD}Variant 2 (Wind-Pea):{STAT}
+{KEYWORD}   Damage:{STAT} 0/2s
+{KEYWORD}   Chill:{STAT} 1.7s
+{KEYWORD}   Special:{STAT} Deals no damage but has infinite pierce
+
 {FLAVOR}Folks often tell Snow Pea how "cool" he is, or exhort him to "chill out." They 
 tell him to "stay frosty." Snow Pea just rolls his eyes. He's heard 'em all.
 
@@ -492,10 +552,24 @@ Chompers can devour a zombie whole, but they are vulnerable while chewing.
 
 [CHOMPER_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Damage:{STAT} massive
-{KEYWORD}Range:{STAT} very short
-{KEYWORD}Special:{STAT} long delay between chomps
+{KEYWORD}Damage:{STAT} 40/2s (Bite)
+{KEYWORD}Range:{STAT} 1 tile in front
+{KEYWORD}Special:{STAT} 27 seconds between chomps
+
 {SHORTLINE}
+{KEYWORD}Variant 1 (Poison-Chomper):{STAT}
+{KEYWORD}   Damage:{STAT} 5/2s
+{KEYWORD}Range:{STAT} 3.75 tiles in front
+{KEYWORD}   Special:{STAT} Poisons Zombies, deals splash damage in a 1x1 area
+{KEYWORD}   Poison System:{STAT} Every 0.75s, zombies take 5 damage for every 3 poison points
+{KEYWORD}   Poison:{STAT} 0.76s Duration, 1 Poison Point (Stacks to 18 points)
+{SHORTLINE}
+{KEYWORD}Variant 2 (Flame-Chomper):{STAT}
+{KEYWORD}   Damage:{STAT} 25/2s
+{KEYWORD}Range:{STAT} 2.12 tiles in front
+{KEYWORD}   Special:{STAT} Splash damage in a 3x3 area, knockback
+{KEYWORD}   Knockback:{STAT} 5 units
+
 {FLAVOR}Chomper almost got a gig doing stunts for The Little Shop of Horrors but it fell 
 through when his agent demanded too much on the front end. Chomper's not resentful, 
 though. He says it's just part of the business.
@@ -973,8 +1047,15 @@ Regular Garden-variety Zombie
 
 [ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} low {270}
+{KEYWORD}Toughness:{STAT} 370
 {SHORTLINE}
+{KEYWORD}Variant 1 (Dasher Zombie):{STAT}
+{KEYWORD}   Special:{STAT} Dashes towards plants, deals 250 damage, and then goes back to normal
+{SHORTLINE}
+{KEYWORD}Variant 2 (Ghost Zombie):{STAT}
+{KEYWORD}   Special:{STAT} After taking 100 damage, becomes intangible and doesn't eat for 6 seconds, before going back to normal
+{SHORTLINE}
+
 {FLAVOR}This zombie loves brains. Can't get enough. Brains, brains, brains, day in and night out. 
 Old and stinky brains? Rotten brains? Brains clearly past their prime? Doesn't matter. Regular zombie wants 'em. 
 
@@ -983,8 +1064,11 @@ Flag Zombie marks the arrival of a huge pile or "wave" of zombies.
 
 [FLAG_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} low {270}
+{KEYWORD}Toughness:{STAT} 700
 {SHORTLINE}
+{KEYWORD}Special:{STAT} x1.5 speed boost to all other zombies
+{KEYWORD}Special:{STAT} 1/0.3s healing for all other zombies
+
 {FLAVOR}Make no mistake, Flag Zombie loves brains. But somewhere down the line he also picked 
 up a fascination with flags. Maybe it's because the flags always have brains on them. Hard to say.
 
@@ -993,8 +1077,16 @@ His traffic cone headpiece makes him twice as tough as normal zombies.
 
 [CONEHEAD_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} medium {640}
+{KEYWORD}Toughness:{STAT} 370 + 470 (Helmet)
 {SHORTLINE}
+{KEYWORD}Variant 1 (Ender Conehead):{STAT}
+{KEYWORD}   Special:{STAT} When getting hit, 1 in 8 chance to teleport 30 Units towards your house
+{KEYWORD}   Special:{STAT} When eating, if the target has less than 250 health, Open a portal and dissapear through it after one second, killing the target and the zombie itself
+{SHORTLINE}
+{KEYWORD}Variant 2 (Garlic Zombie):{STAT}
+{KEYWORD}   Special:{STAT} Every 4 seconds, switch lanes
+{SHORTLINE}
+
 {FLAVOR}Conehead Zombie shuffled mindlessly forward like every other zombie.
 But something made him stop, made him pick up a traffic cone and stick it on his head. Oh yeah. He likes to party.
 
@@ -1003,10 +1095,17 @@ His bucket hat makes him extremely resistant to damage.
 
 [BUCKETHEAD_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} high {1370}
+{KEYWORD}Toughness:{STAT} 1570
 {KEYMETAL}Weakness:{METAL} magnet-shroom
+{KEYWORD}Variant 1 (Defender Bucket):{STAT}
+{KEYWORD}   Special:{STAT} Heals zombies in 3x3 area when hit for 5 health
 {SHORTLINE}
-{FLAVOR}Buckethead Zombie always wore a bucket. Part of it was to assert his uniqueness 
+{KEYWORD}Variant 2 (Booster Bucket):{STAT}
+{KEYWORD}Toughness:{STAT} 950
+{KEYWORD}   Special:{STAT} When losing bucket, launches the bucket towards all zombies in a 3x3 area, doubling their walk and eat speed
+{SHORTLINE}
+
+{SHORTLINE}{FLAVOR}Buckethead Zombie always wore a bucket. Part of it was to assert his uniqueness 
 in an uncaring world. Mostly he just forgot it was there in the first place.
 
 [POLE_VAULTING_ZOMBIE_DESCRIPTION_HEADER]
@@ -1014,9 +1113,16 @@ Pole Vaulting Zombie vaults with a pole.
 
 [POLE_VAULTING_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} medium {500}
+{KEYWORD}Toughness:{STAT} 600
 {KEYWORD}Speed:{STAT} fast, then normal (after jump)
 {KEYWORD}Special:{STAT} jumps the first plant he runs into
+{SHORTLINE}
+{KEYWORD}Variant 1 (Jack-Vaulter):{STAT}
+{KEYWORD}   Special:{STAT} When jumping, throws a jack box in front of it, dealing 300 damage to plants in a 3x3 area
+{KEYWORD}   Special:{STAT} The first time it reaches a plant, switch lanes instead of jumping
+{SHORTLINE}
+{KEYWORD}Variant 2 (Buff vaulter Zombie):{STAT}
+{KEYWORD}   Special:{STAT} Before jumping, heals at a rate of 1/0.3s, and increases speed at a rate of 0.1/1s
 {SHORTLINE}
 {FLAVOR}Some zombies take it further, aspire more, push themselves beyond the 
 normal into greatness. That's Pole Vaulting Zombie right there. That is so him.

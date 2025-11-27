@@ -30,8 +30,8 @@ PlantDefinition gPlantDefs[SeedType::NUM_SEED_TYPES] = {
     { SeedType::SEED_WALLNUT,           nullptr, ReanimationType::REANIM_WALLNUT,       2,  75,     3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      _S("WALL_NUT") },
     { SeedType::SEED_POTATOMINE,        nullptr, ReanimationType::REANIM_POTATOMINE,    37, 50,     3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      _S("POTATO_MINE") },
     { SeedType::SEED_SNOWPEA,           nullptr, ReanimationType::REANIM_SNOWPEA,       4,  175,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("SNOW_PEA") },
-    { SeedType::SEED_CHOMPER,           nullptr, ReanimationType::REANIM_CHOMPER,       31, 150,    750,    PlantSubClass::SUBCLASS_NORMAL,     0,      _S("CHOMPER") },
-    { SeedType::SEED_REPEATER,          nullptr, ReanimationType::REANIM_REPEATER,      5,  200,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("REPEATER") },
+    { SeedType::SEED_CHOMPER,           nullptr, ReanimationType::REANIM_CHOMPER,       31, 200,    750,    PlantSubClass::SUBCLASS_NORMAL,     0,      _S("CHOMPER") },
+    { SeedType::SEED_REPEATER,          nullptr, ReanimationType::REANIM_REPEATER,      5,  225,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("REPEATER") },
     { SeedType::SEED_PUFFSHROOM,        nullptr, ReanimationType::REANIM_PUFFSHROOM,    6,  0,      750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("PUFF_SHROOM") },
     { SeedType::SEED_SUNSHROOM,         nullptr, ReanimationType::REANIM_SUNSHROOM,     7,  25,     750,    PlantSubClass::SUBCLASS_NORMAL,     2500,   _S("SUN_SHROOM") },
     { SeedType::SEED_FUMESHROOM,        nullptr, ReanimationType::REANIM_FUMESHROOM,    9,  75,     750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("FUME_SHROOM") },
@@ -967,7 +967,7 @@ void Plant::UpdateShooter()
     {
         FindTargetAndFire(mRow, PlantWeapon::WEAPON_PRIMARY);
     }
-    if (mLaunchCounter == 25)
+    if (mLaunchCounter == 25 && mVariantType != PlantVariant::SEED_VARIANT_DIVIDEPEA)
     {
         if (mSeedType == SeedType::SEED_REPEATER || mSeedType == SeedType::SEED_LEFTPEATER)
         {
@@ -1187,6 +1187,10 @@ void Plant::PlayBodyReanim(const char* theTrackName, ReanimLoopType theLoopType,
 void Plant::UpdatePotato()
 {
     Reanimation* aBodyReanim = mApp->ReanimationGet(mBodyReanimID);
+    if (mLaunchCounter > 0)
+    {
+        mLaunchCounter--;
+    }
 
     if (mState == PlantState::STATE_NOTREADY)
     {
@@ -1221,7 +1225,7 @@ void Plant::UpdatePotato()
     }
     else if (mState == PlantState::STATE_POTATO_ARMED)
     {
-        if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY))
+        if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY) && mLaunchCounter <= 0)
         {
             DoSpecial();
         }
@@ -1861,90 +1865,330 @@ void Plant::UpdateCactus()
 
 void Plant::UpdateChomper()
 {
-    Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
-    if (mState == PlantState::STATE_READY)
+    if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
     {
-        if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY))
+        Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
+        if (mState == PlantState::STATE_READY)
         {
-            PlayBodyReanim("anim_bite", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 24.0f);
-            mState = PlantState::STATE_CHOMPER_BITING;
-            mStateCountdown = 70;
+            if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY))
+            {
+                PlayBodyReanim("anim_bite", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 24.0f);
+                mState = PlantState::STATE_CHOMPER_BITING;
+                mStateCountdown = 70;
+            }
         }
-    }
-    else if (mState == PlantState::STATE_CHOMPER_BITING)
-    {
-        if (mStateCountdown == 0)
+        else if (mState == PlantState::STATE_CHOMPER_BITING)
         {
-            mApp->PlayFoley(FoleyType::FOLEY_BIGCHOMP);
+            if (mStateCountdown == 0)
+            {
+                mApp->PlayFoley(FoleyType::FOLEY_BIGCHOMP);
 
-            Zombie* aZombie = FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY);
-            bool doBite = false;
-            if (aZombie)
-            {
-                if (aZombie->mZombieType == ZombieType::ZOMBIE_GARGANTUAR || aZombie->mZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR || 
-                    aZombie->mZombieType == ZombieType::ZOMBIE_BOSS)
+                Zombie* aZombie = FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY);
+                bool doBite = false;
+                if (aZombie)
                 {
-                    doBite = true;
+                    if (aZombie->mZombieType == ZombieType::ZOMBIE_GARGANTUAR || aZombie->mZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR ||
+                        aZombie->mZombieType == ZombieType::ZOMBIE_BOSS)
+                    {
+                        doBite = true;
+                    }
                 }
-            }
-            bool doMiss = false;
-            if (aZombie == nullptr)
-            {
-                doMiss = true;
-            }
-            else if (!aZombie->IsImmobilizied())
-            {
-                if (aZombie->IsBouncingPogo() ||
-                    aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_IN_VAULT || aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT)
+                bool doMiss = false;
+                if (aZombie == nullptr)
                 {
                     doMiss = true;
                 }
+                else if (!aZombie->IsImmobilizied())
+                {
+                    if (aZombie->IsBouncingPogo() ||
+                        aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_IN_VAULT || aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT)
+                    {
+                        doMiss = true;
+                    }
+                }
+
+                if (doBite)
+                {
+                    mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
+                    aZombie->TakeDamage(40, 0U);
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+                else if (doMiss)
+                {
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+                else
+                {
+                    aZombie->DieWithLoot();
+                    mState = PlantState::STATE_CHOMPER_BITING_GOT_ONE;
+                }
+            }
+        }
+        else if (mState == PlantState::STATE_CHOMPER_BITING_GOT_ONE)
+        {
+            if (aBodyReanim->mLoopCount > 0)
+            {
+                PlayBodyReanim("anim_chew", ReanimLoopType::REANIM_LOOP, 0, 15.0f);
+                if (mApp->IsIZombieLevel())
+                {
+                    aBodyReanim->mAnimRate = 0;
+                }
+
+                mState = PlantState::STATE_CHOMPER_DIGESTING;
+                mStateCountdown = 2700;
+            }
+        }
+        else if (mState == PlantState::STATE_CHOMPER_DIGESTING)
+        {
+            if (mStateCountdown == 0)
+            {
+                PlayBodyReanim("anim_swallow", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 12.0f);
+                mState = PlantState::STATE_CHOMPER_SWALLOWING;
+            }
+        }
+        else if ((mState == PlantState::STATE_CHOMPER_SWALLOWING || mState == PlantState::STATE_CHOMPER_BITING_MISSED) && aBodyReanim->mLoopCount > 0)
+        {
+            PlayIdleAnim(aBodyReanim->mDefinition->mFPS);
+            mState = PlantState::STATE_READY;
+        }
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_POISONCHOMPER)
+    {
+        Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
+        if (mState == PlantState::STATE_READY)
+        {
+            if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY))
+            {
+                PlayBodyReanim("anim_bite", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 24.0f);
+                mState = PlantState::STATE_CHOMPER_BITING;
+                mStateCountdown = 70;
+            }
+        }
+        else if (mState == PlantState::STATE_CHOMPER_BITING)
+        {
+            if (mStateCountdown == 0)
+            {
+                mApp->PlayFoley(FoleyType::FOLEY_BIGCHOMP);
+
+                Zombie* aZombie = FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY);
+                bool doBite = false;
+                if (aZombie)
+                {
+                    doBite = true;
+                }
+                bool doMiss = false;
+                if (aZombie == nullptr)
+                {
+                    doMiss = true;
+                }
+                else if (!aZombie->IsImmobilizied())
+                {
+                    if (aZombie->IsBouncingPogo() ||
+                        aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_IN_VAULT || aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT)
+                    {
+                        doMiss = true;
+                    }
+                }
+
+                if (doBite)
+                {
+                    mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
+                    Zombie* aOtherZombie = nullptr;
+                    while (mBoard->IterateZombies(aOtherZombie))
+                    {
+                        if (!aOtherZombie->mMindControlled && mBoard->PixelToGridX(aOtherZombie->mPosX, aOtherZombie->mPosY) - mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) == 0 && abs(mBoard->PixelToGridY(aOtherZombie->mPosX, aOtherZombie->mPosY) - mBoard->PixelToGridY(aZombie->mPosX, aZombie->mPosY)) == 0)
+                        {
+                            aOtherZombie->TakeDamage(5, 0U);
+                            if (aOtherZombie->mPoisonStack < 18)
+                            {
+                                aOtherZombie->mPoisonStack += 1;
+                            }
+                            aOtherZombie->mPoisonedCounter = max(aOtherZombie->mPoisonedCounter, 76);
+                        }
+                    }
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+                else if (doMiss)
+                {
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+            }
+        }
+        else if ((mState == PlantState::STATE_CHOMPER_SWALLOWING || mState == PlantState::STATE_CHOMPER_BITING_MISSED) && aBodyReanim->mLoopCount > 0)
+        {
+            PlayIdleAnim(aBodyReanim->mDefinition->mFPS);
+            mState = PlantState::STATE_READY;
+        }
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_FLAMECHOMPER)
+    {
+        Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
+        if (mState == PlantState::STATE_READY)
+        {
+            if (FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY))
+            {
+                PlayBodyReanim("anim_bite", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 24.0f);
+                mState = PlantState::STATE_CHOMPER_BITING;
+                mStateCountdown = 70;
+            }
+        }
+        else if (mState == PlantState::STATE_CHOMPER_BITING)
+        {
+            if (mStateCountdown == 0)
+            {
+                mApp->PlayFoley(FoleyType::FOLEY_BIGCHOMP);
+
+                Zombie* aZombie = FindTargetZombie(mRow, PlantWeapon::WEAPON_PRIMARY);
+                bool doBite = false;
+                if (aZombie)
+                {
+                    doBite = true;
+                }
+                bool doMiss = false;
+                if (aZombie == nullptr)
+                {
+                    doMiss = true;
+                }
+                else if (!aZombie->IsImmobilizied())
+                {
+                    if (aZombie->IsBouncingPogo() ||
+                        aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_IN_VAULT || aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT)
+                    {
+                        doMiss = true;
+                    }
+                }
+
+                if (doBite)
+                {
+                    mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
+                    Zombie* aOtherZombie = nullptr;
+                    int aRenderOrder = mBoard->MakeRenderOrder(RenderLayer::RENDER_LAYER_PARTICLE, aZombie->mRow, 1);
+                    mApp->PlayFoley(FoleyType::FOLEY_IGNITE);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        for (int j = 0; j < 3; j++)
+                        {
+                            float aPositionX = (aZombie->mPosX - 80) + (80 * j) + 50;
+                            float aPositionY = (aZombie->mPosY - 100) + (100 * i) + 20;
+                            Reanimation* aFwoosh = mApp->AddReanimation(aPositionX, aPositionY, aRenderOrder, ReanimationType::REANIM_JALAPENO_FIRE);
+                            aFwoosh->SetFramesForLayer("anim_flame");
+                            aFwoosh->mAnimRate *= RandRangeFloat(1.3f, 1.5f);
+
+                            float aScale = RandRangeFloat(0.9f, 1.1f);
+                            float aFlip = Rand(2) ? 1.0f : -1.0f;
+                            aFwoosh->OverrideScale(aScale* aFlip, 1);
+                        }
+                    }
+                    while (mBoard->IterateZombies(aOtherZombie))
+                    {
+                        if (!aOtherZombie->mMindControlled && abs(mBoard->PixelToGridX(aOtherZombie->mPosX, aOtherZombie->mPosY) - mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY)) <= 1 && abs(mBoard->PixelToGridY(aOtherZombie->mPosX, aOtherZombie->mPosY) - mBoard->PixelToGridY(aZombie->mPosX, aZombie->mPosY)) <= 1)
+                        {
+                            aOtherZombie->TakeDamage(25, 0U);
+                            aOtherZombie->mPosX += 5.0f;
+                        }
+                    }
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+                else if (doMiss)
+                {
+                    mState = PlantState::STATE_CHOMPER_BITING_MISSED;
+                }
+            }
+        }
+        else if ((mState == PlantState::STATE_CHOMPER_SWALLOWING || mState == PlantState::STATE_CHOMPER_BITING_MISSED) && aBodyReanim->mLoopCount > 0)
+        {
+            PlayIdleAnim(aBodyReanim->mDefinition->mFPS);
+            mState = PlantState::STATE_READY;
+        }
+    }
+}
+
+Zombie* Plant::PoisonChomperFind()
+{
+    int aDamageRangeFlags = 9;
+    Rect aAttackRect = Rect(mX + 300, mY, 40, mHeight);
+    int aHighestWeight = 0;
+    Zombie* aBestZombie = nullptr;
+
+    Zombie* aZombie = nullptr;
+    while (mBoard->IterateZombies(aZombie))
+    {
+        int aRowDeviation = aZombie->mRow - mRow;
+        if (aZombie->mZombieType == ZombieType::ZOMBIE_BOSS)
+        {
+            aRowDeviation = 0;
+        }
+
+        if (!aZombie->mHasHead || aZombie->IsTangleKelpTarget())
+        {
+            continue;
+        }
+
+        bool needPortalCheck = false;
+        if (mSeedType != SeedType::SEED_CATTAIL)
+        {
+            if (mSeedType == SeedType::SEED_GLOOMSHROOM)
+            {
+                if (aRowDeviation < -1 || aRowDeviation > 1)
+                {
+                    continue;
+                }
+            }
+            else if (needPortalCheck)
+            {
+                if (!mBoard->mChallenge->CanTargetZombieWithPortals(this, aZombie))
+                {
+                    continue;
+                }
+            }
+            else if (aRowDeviation)
+            {
+                continue;
+            }
+        }
+
+        if (aZombie->EffectedByDamage(aDamageRangeFlags))
+        {
+            int aExtraRange = 0;
+
+            if (mSeedType == SeedType::SEED_CHOMPER)
+            {
+                if (aZombie->mZombiePhase == ZombiePhase::PHASE_DIGGER_WALKING)
+                {
+                    aAttackRect.mX += 20;
+                    aAttackRect.mWidth -= 20;
+                }
+
+                if (aZombie->mZombiePhase == ZombiePhase::PHASE_POGO_BOUNCING || (aZombie->mZombieType == ZombieType::ZOMBIE_BUNGEE && aZombie->mTargetCol == mPlantCol))
+                {
+                    continue;
+                }
+
+                if (aZombie->mIsEating || mState == PlantState::STATE_CHOMPER_BITING)
+                {
+                    aExtraRange = 60;
+                }
             }
 
-            if (doBite)
+            Rect aZombieRect = aZombie->GetZombieRect();
+            if (!needPortalCheck && GetRectOverlap(aAttackRect, aZombieRect) < -aExtraRange)
             {
-                mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
-                aZombie->TakeDamage(40, 0U);
-                mState = PlantState::STATE_CHOMPER_BITING_MISSED;
-            }
-            else if (doMiss)
-            {
-                mState = PlantState::STATE_CHOMPER_BITING_MISSED;
-            }
-            else
-            {
-                aZombie->DieWithLoot();
-                mState = PlantState::STATE_CHOMPER_BITING_GOT_ONE;
-            }
-        }
-    }
-    else if (mState == PlantState::STATE_CHOMPER_BITING_GOT_ONE)
-    {
-        if (aBodyReanim->mLoopCount > 0)
-        {
-            PlayBodyReanim("anim_chew", ReanimLoopType::REANIM_LOOP, 0, 15.0f);
-            if (mApp->IsIZombieLevel())
-            {
-                aBodyReanim->mAnimRate = 0;
+                continue;
             }
 
-            mState = PlantState::STATE_CHOMPER_DIGESTING;
-            mStateCountdown = 4000;
+            ////////////////////
+
+            int aWeight = -aZombieRect.mX;
+
+            if (aBestZombie == nullptr || aWeight > aHighestWeight)
+            {
+                aHighestWeight = aWeight;
+                aBestZombie = aZombie;
+            }
         }
     }
-    else if (mState == PlantState::STATE_CHOMPER_DIGESTING)
-    {
-        if (mStateCountdown == 0)
-        {
-            PlayBodyReanim("anim_swallow", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 12.0f);
-            mState = PlantState::STATE_CHOMPER_SWALLOWING;
-        }
-    }
-    else if ((mState == PlantState::STATE_CHOMPER_SWALLOWING || mState == PlantState::STATE_CHOMPER_BITING_MISSED) && aBodyReanim->mLoopCount > 0)
-    {
-        PlayIdleAnim(aBodyReanim->mDefinition->mFPS);
-        mState = PlantState::STATE_READY;
-    }
+
+    return aBestZombie;
 }
 
 MagnetItem* Plant::GetFreeMagnetItem()
@@ -2860,6 +3104,14 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(46, 255, 46);
     }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_POISONCHOMPER)
+    {
+        aColorOverride = Color(46, 255, 46);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_FLAMECHOMPER)
+    {
+        aColorOverride = Color(240, 81, 7);
+    }
     else if (mVariantType == PlantVariant::SEED_VARIANT_WINDPEA)
     {
         aColorOverride = Color(190, 92, 250);
@@ -2879,6 +3131,14 @@ void Plant::UpdateReanimColor()
     else if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
     {
         aColorOverride = Color(128, 236, 255);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_PRIMALPEA)
+    {
+        aColorOverride = Color(128, 236, 255);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_DIVIDEPEA)
+    {
+        aColorOverride = Color(245, 187, 42);
     }
     else
     {
@@ -4522,6 +4782,42 @@ void Plant::MouseDown(int x, int y, int theClickCount)
                 mLaunchCounter = 160;
             }
         }
+        if (mSeedType == SeedType::SEED_CHOMPER)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_POISONCHOMPER)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_FLAMECHOMPER;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_FLAMECHOMPER)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_POISONCHOMPER;
+            }
+        }
+        if (mSeedType == SeedType::SEED_REPEATER)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_PRIMALPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_DIVIDEPEA;
+                mLaunchRate = 180;
+                mLaunchCounter = 180;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_DIVIDEPEA)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchRate = 150;
+                mLaunchCounter = 150;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_PRIMALPEA;
+                mLaunchRate = 230;
+                mLaunchCounter = 200;
+            }
+        }
     }
 }
 
@@ -4768,10 +5064,11 @@ void Plant::DoSpecial()
                 if (abs(aRowDeviation) <= 1 && abs(aColDeviation) <= 1 && mPlantHealth > -1)
                 {
                     aZombie->mPosX += 30;
-                    mPlantHealth -= 35;
+                    mPlantHealth -= 40;
                     aZombie->TakeDamage(70, 18U);
                 }
             }
+            mLaunchCounter = 50;
         }
         break;
     }
@@ -5075,13 +5372,27 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
     Projectile* aProjectile = mBoard->AddProjectile(aOriginX, aOriginY, mRenderOrder - 1, theRow, aProjectileType);
     aProjectile->mDamageRangeFlags = GetDamageRangeFlags(thePlantWeapon);
 
+
     mShotsCounter++;
 
     if (mVariantType == PlantVariant::SEED_VARIANT_POISONPEA)
     {
         aProjectile->mPoisonOverride = 299;
+        aProjectile->mMaxPoison = 10;
         aProjectile->mDamageOverride = 15;
         aProjectile->mChillOverride = 0;
+    }
+
+    if (mVariantType == PlantVariant::SEED_VARIANT_DIVIDEPEA)
+    {
+        aProjectile->mDamageOverride = 15;
+        aProjectile->mSplits = true;
+    }
+
+    if (mVariantType == PlantVariant::SEED_VARIANT_PRIMALPEA)
+    {
+        aProjectile->mDamageOverride = 17;
+        aProjectile->mKnockback = 9.0f;
     }
 
     if (mVariantType == PlantVariant::SEED_VARIANT_WINDPEA)
@@ -5589,7 +5900,10 @@ Rect Plant::GetPlantAttackRect(PlantWeapon thePlantWeapon)
     {
     case SeedType::SEED_LEFTPEATER:     aRect = Rect(0,             mY,             mX,                 mHeight);               break;
     case SeedType::SEED_SQUASH:         aRect = Rect(mX + 20,       mY,             mWidth - 35,        mHeight);               break;
-    case SeedType::SEED_CHOMPER:        aRect = Rect(mX + 80,       mY,             40,                 mHeight);               break;
+    case SeedType::SEED_CHOMPER:
+        if (mVariantType == PlantVariant::SEED_VARIANT_NONE) { aRect = Rect(mX + 80, mY, 40, mHeight);  break; }
+        if (mVariantType == PlantVariant::SEED_VARIANT_POISONCHOMPER) { aRect = Rect(mX + 80, mY, 260, mHeight);  break; }
+        if (mVariantType == PlantVariant::SEED_VARIANT_FLAMECHOMPER) { aRect = Rect(mX + 80, mY, 130, mHeight);  break; }
     case SeedType::SEED_SPIKEWEED:
     case SeedType::SEED_SPIKEROCK:      aRect = Rect(mX + 20,       mY,             mWidth - 50,        mHeight);               break;
     case SeedType::SEED_POTATOMINE:     aRect = Rect(mX,            mY,             mWidth - 25,        mHeight);               break;

@@ -165,6 +165,7 @@ public:
     ZombieVariant                   mVariantType;
     int                             mPoisonedCounter;
     int                             mPoisonStack;
+    bool                            mBucketBoosted;
 
 public:
     Zombie();

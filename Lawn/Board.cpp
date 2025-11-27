@@ -8427,7 +8427,6 @@ void Board::KeyChar(SexyChar theChar)
 	{
 		if (mDebugObjectType == 0)
 		{
-
 			ZombieType aDebugZombieType = static_cast<ZombieType>(mDebugObjectSelection);
 			Zombie* aZombie = AddZombieInRow(aDebugZombieType, aGridY, Zombie::ZOMBIE_WAVE_DEBUG);
 			return;
