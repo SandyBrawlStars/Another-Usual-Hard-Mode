@@ -325,6 +325,7 @@ public:
 	bool							CanPauseNow();
 	/*inline*/ bool					IsPuzzleMode();
 	/*inline*/ bool					IsChallengeMode();
+	/*inline*/ bool					IsExpansionMode();
 	static /*inline*/ bool			IsEndlessIZombie(GameMode theGameMode);
 	void							CrazyDaveDoneHanding();
 	inline SexyString				GetCurrentLevelName() { return _S("Unknown"); }

@@ -47,6 +47,7 @@ CoinDefinition gCoinDefs[NUM_COIN_TYPES] = {
     {COIN_PRESENT_MINIGAMES,  _S("MINIGAMES")},
     {COIN_PRESENT_PUZZLE_MODE,  _S("PUZZLE")},
     {COIN_PRESENT_SURVIVAL_MODE,  _S("SURVIVAL")},
+    {COIN_PRESENT_EXPANSION,  _S("EXPANSIONS")},
 };
 
 
@@ -449,7 +450,7 @@ bool Coin::IsSun()
 
 bool Coin::IsPresentWithAdvice()
 {
-    return mType == CoinType::COIN_PRESENT_MINIGAMES || mType == CoinType::COIN_PRESENT_PUZZLE_MODE || mType == CoinType::COIN_PRESENT_SURVIVAL_MODE;
+    return mType == CoinType::COIN_PRESENT_MINIGAMES || mType == CoinType::COIN_PRESENT_EXPANSION || mType == CoinType::COIN_PRESENT_PUZZLE_MODE || mType == CoinType::COIN_PRESENT_SURVIVAL_MODE;
 }
 
 void Coin::ScoreCoin()
@@ -716,6 +717,10 @@ void Coin::UpdateCollected()
                 if (mType == CoinType::COIN_PRESENT_MINIGAMES)
                 {
                     mBoard->DisplayAdvice(_S("[UNLOCKED_MINIGAMES]"), MessageStyle::MESSAGE_STYLE_HINT_TALL_UNLOCKMESSAGE, AdviceType::ADVICE_UNLOCKED_MODE);
+                }
+                else if (mType == CoinType::COIN_PRESENT_EXPANSION)
+                {
+                    mBoard->DisplayAdvice(_S("Adventure Expansions unlocked! Play them from the minigames page selector!"), MessageStyle::MESSAGE_STYLE_HINT_TALL_UNLOCKMESSAGE, AdviceType::ADVICE_UNLOCKED_MODE);
                 }
                 else if (mType == CoinType::COIN_PRESENT_PUZZLE_MODE)
                 {
@@ -1156,6 +1161,20 @@ void Coin::Collect()
 
         AttachmentDetachCrossFadeParticleType(mAttachmentID, ParticleEffect::PARTICLE_AWARD_PICKUP_ARROW, nullptr);
         mApp->mPlayerInfo->mHasUnlockedSurvivalMode = 1;
+
+        return;
+    }
+    if (mType == CoinType::COIN_PRESENT_EXPANSION)
+    {
+        TOD_ASSERT(mBoard);
+
+        mApp->AddTodParticle(mPosX + 30.0f, mPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_PRESENT_PICKUP);
+
+        mDisappearCounter = 0;
+        mFadeCount = 0;
+
+        AttachmentDetachCrossFadeParticleType(mAttachmentID, ParticleEffect::PARTICLE_AWARD_PICKUP_ARROW, nullptr);
+        mApp->mPlayerInfo->mHasUnlockedExpansions = 1;
 
         return;
     }

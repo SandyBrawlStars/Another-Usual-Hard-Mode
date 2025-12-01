@@ -96,6 +96,12 @@ AlmanacDialog::AlmanacDialog(LawnApp* theApp) : LawnDialog(theApp, DIALOG_ALMANA
 	mZombieButton->mDrawStoneButton = true;
 	mZombieButton->mParentWidget = this;
 
+	mExtraButton = new GameButton(AlmanacDialog::ALMANAC_BUTTON_EXTRA);
+	mExtraButton->SetLabel(_S("[VIEW_EXTRAS]"));
+	mExtraButton->Resize(270, 445, 260, 48);
+	mExtraButton->mDrawStoneButton = true;
+	mExtraButton->mParentWidget = this;
+
 	mPlantSlider = new Sexy::Slider(IMAGE_OPTIONS_SLIDERSLOT_PLANT, IMAGE_OPTIONS_SLIDERKNOB_PLANT, 0, this);
 	mPlantSlider->SetValue(max(0.0, min(mMaxScrollPosition, mScrollPosition)));
 	mPlantSlider->mHorizontal = false;
@@ -121,6 +127,7 @@ AlmanacDialog::~AlmanacDialog()
 	if (mIndexButton)	delete mIndexButton;
 	if (mPlantButton)	delete mPlantButton;
 	if (mZombieButton)	delete mZombieButton;
+	if (mExtraButton)	delete mExtraButton;
 	delete mPlantSlider;
 	delete mZombieSlider;
 	ClearObjects();
@@ -224,6 +231,7 @@ void AlmanacDialog::SetPage(AlmanacPage thePage)
 		mIndexButton->mBtnNoDraw = true;
 		mPlantButton->mBtnNoDraw = false;
 		mZombieButton->mBtnNoDraw = false;
+		mExtraButton->mBtnNoDraw = false;
 	}
 	else
 	{
@@ -231,11 +239,14 @@ void AlmanacDialog::SetPage(AlmanacPage thePage)
 			SetupPlant();
 		else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_ZOMBIES)
 			SetupZombie();
+		else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_EXTRA)
+			ClearObjects();
 		else return;
 
 		mIndexButton->mBtnNoDraw = false;
 		mPlantButton->mBtnNoDraw = true;
 		mZombieButton->mBtnNoDraw = true;
+		mExtraButton->mBtnNoDraw = true;
 	}
 }
 
@@ -259,6 +270,7 @@ void AlmanacDialog::Update()
 	mIndexButton->Update();
 	mPlantButton->Update();
 	mZombieButton->Update();
+	mExtraButton->Update();
 	if (mPlant) mPlant->Update();
 	if (mZombie) mZombie->Update();
 
@@ -302,7 +314,7 @@ void AlmanacDialog::Update()
 	{
 		ZombieType aZombieType = ZombieHitTest(mLastMouseX, mLastMouseY);
 		if (SeedHitTest(mLastMouseX, mLastMouseY) != SeedType::SEED_NONE || (aZombieType != ZOMBIE_INVALID && ZombieIsShown(aZombieType)) ||
-			mCloseButton->IsMouseOver() || mIndexButton->IsMouseOver() || mPlantButton->IsMouseOver() || mZombieButton->IsMouseOver())
+			mCloseButton->IsMouseOver() || mIndexButton->IsMouseOver() || mPlantButton->IsMouseOver() || mZombieButton->IsMouseOver() || mExtraButton->IsMouseOver())
 			mApp->SetCursor(CURSOR_HAND);
 		else
 			mApp->SetCursor(CURSOR_POINTER);
@@ -661,6 +673,45 @@ void AlmanacDialog::Draw(Graphics* g)
 		DrawPlants(g);
 	else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_ZOMBIES)
 		DrawZombies(g);
+	else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_EXTRA)
+	{
+		g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEBACK, 0, 0);
+		TodDrawString(g, _S("[SUBURBAN_ALMANAC_EXTRAS]"), BOARD_WIDTH / 2, 55, Sexy::FONT_HOUSEOFTERROR20, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_CENTER);
+
+		int aPosY = 100;
+		TodDrawString(g, _S("Zombie Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(224, 127, 16), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("Zombies have a random chance to show up as a variant,"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("stats and abilities listed in their almanac entries."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		TodDrawString(g, _S("Plant Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(32, 207, 4), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("You can select the variant of plants by clicking on"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("them, most plants have 3, single use plants have 2."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		TodDrawString(g, _S("Poison System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(69, 156, 3), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("Every 0.75s, zombies take 5 damage for every 3 poison points."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		TodDrawString(g, _S("Curse System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(156, 11, 3), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("Cursed Plants take damage and damage other plants in a 3x3"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("area in a rate of 1/0.1s."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		TodDrawString(g, _S("Adventure Expansions:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(66, 135, 245), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("After beating a world, you will unlock 5 expansion levels"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		TodDrawString(g, _S("for that world, they are optional and give extra rewards."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+	}
 
 	for (Zombie* aZombie : mZombiePerfTest)
 	{
@@ -675,6 +726,7 @@ void AlmanacDialog::Draw(Graphics* g)
 	mIndexButton->Draw(g);
 	mPlantButton->Draw(g);
 	mZombieButton->Draw(g);
+	mExtraButton->Draw(g);
 }
 
 void AlmanacDialog::GetSeedPosition(SeedType theSeedType, int& x, int& y)
@@ -812,6 +864,8 @@ void AlmanacDialog::MouseUp(int x, int y, int theClickCount)
 		SetPage(ALMANAC_PAGE_PLANTS);
 	else if (mZombieButton->IsMouseOver())
 		SetPage(ALMANAC_PAGE_ZOMBIES);
+	else if (mExtraButton->IsMouseOver())
+		SetPage(ALMANAC_PAGE_EXTRA);
 	else if (mCloseButton->IsMouseOver())	
 		mApp->KillAlmanacDialog();
 	else if (mIndexButton->IsMouseOver())	
@@ -829,7 +883,7 @@ void AlmanacDialog::MouseDown(int x, int y, int theClickCount)
 	}
 	if (mPlantButton->IsMouseOver() || mCloseButton->IsMouseOver() || mIndexButton->IsMouseOver())
 		mApp->PlaySample(Sexy::SOUND_TAP);
-	if (mZombieButton->IsMouseOver())
+	if (mZombieButton->IsMouseOver() || mExtraButton->IsMouseOver())
 		mApp->PlaySample(Sexy::SOUND_GRAVEBUTTON);
 
 	SeedType aSeedType = SeedHitTest(x, y);

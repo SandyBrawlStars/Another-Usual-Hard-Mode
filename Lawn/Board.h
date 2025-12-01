@@ -432,6 +432,8 @@ public:
 	int								CountZombiesOnScreen();
 	/*inline*/ int					GetNumWavesPerSurvivalStage();
 	int								GetLevelRandSeed();
+	int								GetExpansionLevelWaves(GameMode theLevel);
+	float                             GetExpansionZombiePointMult(GameMode theLevel);
 	void							AddBossRenderItem(RenderItem* theRenderList, int& theCurRenderItem, Zombie* theBossZombie);
 	/*inline*/ GridItem*			GetCraterAt(int theGridX, int theGridY);
 	/*inline*/ GridItem*			GetGraveStoneAt(int theGridX, int theGridY);

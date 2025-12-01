@@ -56,6 +56,7 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncLong(mStinkyPosX);
 	theSync.SyncLong(mStinkyPosY);
 	theSync.SyncLong(mHasUnlockedMinigames);
+	theSync.SyncLong(mHasUnlockedExpansions);
 	theSync.SyncLong(mHasUnlockedPuzzleMode);
 	theSync.SyncLong(mHasNewMiniGame);
 	theSync.SyncLong(mHasNewScaryPotter);
@@ -149,6 +150,7 @@ void PlayerInfo::Reset()
 	mStinkyPosX = 0;
 	mStinkyPosY = 0;
 	mHasUnlockedMinigames = 0;
+	mHasUnlockedExpansions = 0;
 	mHasUnlockedPuzzleMode = 0;
 	mHasNewMiniGame = 0;
 	mHasNewScaryPotter = 0;

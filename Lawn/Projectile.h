@@ -64,6 +64,7 @@ public:
     int                     mPoisonOverride;
     int                     mMaxPoison;
     bool                    mSplits;
+    int                     mCurseOverride;
 
 
 public:

@@ -297,7 +297,28 @@ ZombieAllowedLevels gZombieAllowedLevels[NUM_ZOMBIE_TYPES] = {
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		} }
+		} },
+	{ ZOMBIE_CABBAGE_HEAD, {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		} },
+	{ ZOMBIE_REPEATER_HEAD, {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	} },
+	{ ZOMBIE_SUNFLOWER_HEAD, {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	} },
 };
 
 SeedType gArtChallengeWallnut[MAX_GRID_SIZE_Y][MAX_GRID_SIZE_X] = {  
@@ -2670,6 +2691,12 @@ void Challenge::InitZombieWaves()
 		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_WALLNUT_HEAD] = true;
 	}
+	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_1)
+	{
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_POLEVAULTER] = true;
+		}
 	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_2)
 	{
 		aList[ZOMBIE_PEA_HEAD] = true;
@@ -2737,7 +2764,7 @@ void Challenge::WhackAZombiePlaceGraves(int theGraveCount)
 				continue;
 
 			TodWeightedGridArray* aPick = &aPicks[aPickCount++];
-			aPick->mWeight = mBoard->GetTopPlantAt(aCol, aRow, TOPPLANT_ANY) ? 100000 : 1;
+			aPick->mWeight = mBoard->GetTopPlantAt(aCol, aRow, TOPPLANT_ANY) ? 1 : 100000;
 			aPick->mX = aCol;
 			aPick->mY = aRow;
 		}
@@ -2933,7 +2960,7 @@ void Challenge::GraveDangerSpawnRandomGrave()
 		{
 			if (mBoard->CanAddGraveStoneAt(aCol, aRow))
 			{
-				aPicks[aPickCount].mWeight = mBoard->GetTopPlantAt(aCol, aRow, TOPPLANT_ANY) ? 100000 : 1;
+				aPicks[aPickCount].mWeight = mBoard->GetTopPlantAt(aCol, aRow, TOPPLANT_ANY) ? 1 : 100000;
 				aPicks[aPickCount].mX = aCol;
 				aPicks[aPickCount].mY = aRow;
 				aPickCount++;
@@ -3977,7 +4004,7 @@ void Challenge::ScaryPotterPopulate()
 			ScaryPotterDontPlaceInCol(0, aGridArray, aGridArrayCount);
 			ScaryPotterDontPlaceInCol(1, aGridArray, aGridArrayCount);
 			ScaryPotterPlacePot(SCARYPOT_SEED, ZOMBIE_INVALID, SEED_PUFFSHROOM, 7, aGridArray, aGridArrayCount);
-			ScaryPotterPlacePot(SCARYPOT_SEED, ZOMBIE_INVALID, SEED_WALLNUT, 3, aGridArray, aGridArrayCount);
+			ScaryPotterPlacePot(SCARYPOT_SEED, ZOMBIE_INVALID, SEED_TALLNUT, 3, aGridArray, aGridArrayCount);
 			ScaryPotterPlacePot(SCARYPOT_SEED, ZOMBIE_INVALID, SEED_SQUASH, 5, aGridArray, aGridArrayCount);
 			ScaryPotterPlacePot(SCARYPOT_SEED, ZOMBIE_INVALID, SEED_LEFTPEATER, 4, aGridArray, aGridArrayCount);
 			ScaryPotterPlacePot(SCARYPOT_ZOMBIE, ZOMBIE_JACK_IN_THE_BOX, SEED_NONE, 8, aGridArray, aGridArrayCount);

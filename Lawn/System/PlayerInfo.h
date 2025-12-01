@@ -58,7 +58,8 @@ public:
     long                mLastStinkyChocolateTime;           
     int                 mStinkyPosX;                        
     int                 mStinkyPosY;                        
-    int                 mHasUnlockedMinigames;              
+    int                 mHasUnlockedMinigames; 
+    int                 mHasUnlockedExpansions;
     int                 mHasUnlockedPuzzleMode;             
     int                 mHasNewMiniGame;                    
     int                 mHasNewScaryPotter;                 

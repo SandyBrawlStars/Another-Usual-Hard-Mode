@@ -89,7 +89,13 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_9,                    11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  3,  _S("[I_ZOMBIE_9]") },
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS,              11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  4,  _S("[I_ZOMBIE_ENDLESS]") },
 	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("Upsell") },
-	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") }
+	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_1,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  0,  _S("1-11") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_2,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  1,  _S("1-12") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_3,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  2,  _S("1-13") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_4,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  3,  _S("1-14") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_5,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  4,  _S("1-15") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_6,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    1,  0,  _S("2-11") },
 };
 
 ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
@@ -133,7 +139,7 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 		mChallengeButtons[aChallengeMode] = aChallengeButton;
 		aChallengeButton->mDoFinger = true;
 		aChallengeButton->mFrameNoDraw = true;
-		if (aChlDef.mPage == CHALLENGE_PAGE_CHALLENGE || aChlDef.mPage == CHALLENGE_PAGE_LIMBO || aChlDef.mPage == CHALLENGE_PAGE_PUZZLE)
+		if (aChlDef.mPage == CHALLENGE_PAGE_CHALLENGE || aChlDef.mPage == CHALLENGE_PAGE_LIMBO || aChlDef.mPage == CHALLENGE_PAGE_PUZZLE || aChlDef.mPage == CHALLENGE_PAGE_EXTRAS)
 			aChallengeButton->Resize(38 + aChlDef.mCol * 155, 93 + aChlDef.mRow * 119, 104, 115);
 		else
 			aChallengeButton->Resize(38 + aChlDef.mCol * 155, 125 + aChlDef.mRow * 145, 104, 115);
@@ -159,6 +165,11 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 		mApp->mPlayerInfo->mHasNewSurvival = false;
 	}
 	else if (mPageIndex == CHALLENGE_PAGE_CHALLENGE && mApp->mPlayerInfo->mHasNewMiniGame)
+	{
+		SetUnlockChallengeIndex(mPageIndex, false);
+		mApp->mPlayerInfo->mHasNewMiniGame = false;
+	}
+	else if (mPageIndex == CHALLENGE_PAGE_EXTRAS && mApp->mPlayerInfo->mHasNewMiniGame)
 	{
 		SetUnlockChallengeIndex(mPageIndex, false);
 		mApp->mPlayerInfo->mHasNewMiniGame = false;
@@ -315,6 +326,29 @@ int ChallengeScreen::MoreTrophiesNeeded(int theChallengeIndex)
 			}
 		}
 	}
+	else if (aDef.mPage == CHALLENGE_PAGE_EXTRAS && !mApp->HasFinishedAdventure())
+	{
+		int aNumTrophies = mApp->GetNumTrophies(aDef.mPage);
+		int aIdxInPage = aDef.mRow * 5 + aDef.mCol;
+		if (aIdxInPage - aNumTrophies) return 0;
+		switch (aDef.mRow)
+		{
+		case 0:
+			return aIdxInPage - aNumTrophies;
+		case 1:
+			if (mApp->mPlayerInfo->mLevel < 21) return 2;
+			return aIdxInPage - aNumTrophies;
+		case 2:
+			if (mApp->mPlayerInfo->mLevel < 31) return 2;
+			return aIdxInPage - aNumTrophies;
+		case 3:
+			if (mApp->mPlayerInfo->mLevel < 41) return 2;
+			return aIdxInPage - aNumTrophies;
+		case 4:
+			if (mApp->mPlayerInfo->mLevel < 51) return 2;
+			return aIdxInPage - aNumTrophies;
+		}
+	}
 	else
 	{
 		int aIdxInPage = aDef.mRow * 5 + aDef.mCol;
@@ -336,6 +370,10 @@ int ChallengeScreen::MoreTrophiesNeeded(int theChallengeIndex)
 			if (aDef.mPage == CHALLENGE_PAGE_SURVIVAL || aDef.mPage == CHALLENGE_PAGE_CHALLENGE)
 			{
 				aNumTrophies += 3;
+			}
+			if (aDef.mPage == CHALLENGE_PAGE_EXTRAS)
+			{
+				return 0;
 			}
 			else
 			{
@@ -555,6 +593,9 @@ SexyString ChallengeScreen::GetPageTitle(ChallengePage thePage)
 	case ChallengePage::CHALLENGE_PAGE_CHALLENGE:
 		aTitle = _S("[PICK_CHALLENGE]");
 		break;
+	case ChallengePage::CHALLENGE_PAGE_EXTRAS:
+		aTitle = _S("Expansion Levels");
+		break;
 	case ChallengePage::CHALLENGE_PAGE_PUZZLE:
 		aTitle = _S("[SCARY_POTTER]");
 		break;
@@ -574,6 +615,8 @@ bool ChallengeScreen::IsPageUnlocked(ChallengePage thePage)
 	{
 	case ChallengePage::CHALLENGE_PAGE_CHALLENGE:
 		return mApp->HasFinishedAdventure() || mApp->mPlayerInfo->mHasUnlockedMinigames;
+	case ChallengePage::CHALLENGE_PAGE_EXTRAS:
+		return mApp->HasFinishedAdventure() || mApp->mPlayerInfo->mHasUnlockedExpansions;
 	case ChallengePage::CHALLENGE_PAGE_PUZZLE:
 		return mApp->HasFinishedAdventure() || mApp->mPlayerInfo->mHasUnlockedPuzzleMode;
 	case ChallengePage::CHALLENGE_PAGE_SURVIVAL:
@@ -678,6 +721,7 @@ void ChallengeScreen::UpdateToolTip()
 				else if (!mApp->HasFinishedAdventure() || mApp->IsTrialStageLocked())
 				{
 					aLabel = _S("[FINISH_ADVENTURE_TOOLTIP]");
+					if (mPageIndex == CHALLENGE_PAGE_EXTRAS) aLabel = _S("Collect more thropies!");
 				}
 				else if (mApp->IsSurvivalEndless(aDef.mChallengeMode))
 				{
@@ -690,6 +734,10 @@ void ChallengeScreen::UpdateToolTip()
 				else if (mPageIndex == CHALLENGE_PAGE_CHALLENGE)
 				{
 					aLabel = _S("[ONE_MORE_CHALLENGE_TOOLTIP]");
+				}
+				else if (mPageIndex == CHALLENGE_PAGE_EXTRAS)
+				{
+					aLabel = _S("Complete one more expansion level to unlock");
 				}
 				else continue;
 

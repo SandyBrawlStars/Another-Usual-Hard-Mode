@@ -31,6 +31,7 @@ ProjectileDefinition gProjectileDefinition[] = {
 	{ ProjectileType::PROJECTILE_JACKBOX,    0,  200,  _S("JACK_BOX") },
 	{ ProjectileType::PROJECTILE_BUCKET,    0,  0,  _S("BUCKET") },
 	{ ProjectileType::PROJECTILE_ZOMBIE_CABBAGE,       0,  40,  _S("ZOMBIE_CABBAGE")  },
+	{ ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA,       0,  25,  _S("SNOW_PEA")  },
 };
 
 Projectile::Projectile()
@@ -87,6 +88,7 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mChillOverride = -1;
 	mDamageOverride = -1;
 	mPoisonOverride = -1;
+	mCurseOverride = -1;
 	mMaxPoison = 10;
 	mSplits = false;
 
@@ -111,6 +113,11 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 		mRotationSpeed = RandRangeFloat(-0.2f, -0.08f);
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_SNOWPEA)
+	{
+		TodParticleSystem* aParticle = mApp->AddTodParticle(mPosX + 8.0f, mPosY + 13.0f, 400000, ParticleEffect::PARTICLE_SNOWPEA_TRAIL);
+		AttachParticle(mAttachmentID, aParticle, 8.0f, 13.0f);
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		TodParticleSystem* aParticle = mApp->AddTodParticle(mPosX + 8.0f, mPosY + 13.0f, 400000, ParticleEffect::PARTICLE_SNOWPEA_TRAIL);
 		AttachParticle(mAttachmentID, aParticle, 8.0f, 13.0f);
@@ -160,7 +167,7 @@ Plant* Projectile::FindCollisionTargetPlant()
 		if (aPlant->mRow != mRow)
 			continue;
 
-		if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+		if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 		{
 			if (aPlant->mSeedType == SeedType::SEED_PUFFSHROOM ||
 				aPlant->mSeedType == SeedType::SEED_SUNSHROOM ||
@@ -174,7 +181,7 @@ Plant* Projectile::FindCollisionTargetPlant()
 		Rect aPlantRect = aPlant->GetPlantRect();
 		if (GetRectOverlap(aProjectileRect, aPlantRect) > 8)
 		{
-			if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+			if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 			{
 				return mBoard->GetTopPlantAt(aPlant->mPlantCol, aPlant->mRow, PlantPriority::TOPPLANT_EATING_ORDER);
 			}
@@ -299,7 +306,7 @@ void Projectile::CheckForCollision()
 		return;
 	}
 
-	if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+	if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		Plant* aPlant = FindCollisionTargetPlant();
 		if (aPlant)
@@ -307,6 +314,17 @@ void Projectile::CheckForCollision()
 			const ProjectileDefinition& aProjectileDef = GetProjectileDef();
 			aPlant->mPlantHealth -= aProjectileDef.mDamage;
 			aPlant->mEatenFlashCountdown = max(aPlant->mEatenFlashCountdown, 25);
+
+			if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
+			{
+				if (aPlant->mChilledCounter == 0) mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
+				aPlant->FreezePlant(1000, 0);
+			}
+			
+			if (mCurseOverride >= 0)
+			{
+				aPlant->mCurseCounter = max(mCurseOverride, aPlant->mCurseCounter);
+			}
 
 			mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
 			mApp->AddTodParticle(mPosX - 3.0f, mPosY + 17.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_PEA_SPLAT);
@@ -587,7 +605,7 @@ void Projectile::UpdateLobMotion()
 
 	Plant* aPlant = nullptr;
 	Zombie* aZombie = nullptr;
-	if (mProjectileType == ProjectileType::PROJECTILE_BASKETBALL || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA)
+	if (mProjectileType == ProjectileType::PROJECTILE_BASKETBALL || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_PEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		aPlant = FindCollisionTargetPlant();
 	}
@@ -986,6 +1004,11 @@ void Projectile::DoImpact(Zombie* theZombie)
 		aSplatPosX -= 15.0f;
 		aEffect = ParticleEffect::PARTICLE_SNOWPEA_SPLAT;
 	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
+	{
+		aSplatPosX -= 15.0f;
+		aEffect = ParticleEffect::PARTICLE_SNOWPEA_SPLAT;
+	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
 	{
 		if (IsSplashDamage(theZombie))
@@ -1101,6 +1124,7 @@ void Projectile::Update()
 	if (mProjectileType == ProjectileType::PROJECTILE_PEA || 
 		mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA ||
 		mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || 
+		mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA ||
 		mProjectileType == ProjectileType::PROJECTILE_CABBAGE || 
 		mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_CABBAGE ||
 		mProjectileType == ProjectileType::PROJECTILE_MELON || 
@@ -1146,6 +1170,10 @@ void Projectile::Draw(Graphics* g)
 		aImage = IMAGE_PROJECTILEPEA;
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_SNOWPEA)
+	{
+		aImage = IMAGE_PROJECTILESNOWPEA;
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		aImage = IMAGE_PROJECTILESNOWPEA;
 	}
@@ -1298,6 +1326,7 @@ void Projectile::DrawShadow(Graphics* g)
 		break;
 
 	case ProjectileType::PROJECTILE_SNOWPEA:
+	case ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA:
 		aOffsetX += -1.0f;
 		aScale = 1.3f;
 		break;
@@ -1344,7 +1373,7 @@ void Projectile::Die()
 {
 	mDead = true;
 
-	if (mProjectileType == ProjectileType::PROJECTILE_PUFF || mProjectileType == ProjectileType::PROJECTILE_SNOWPEA)
+	if (mProjectileType == ProjectileType::PROJECTILE_PUFF || mProjectileType == ProjectileType::PROJECTILE_SNOWPEA || mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		AttachmentCrossFade(mAttachmentID, "FadeOut");
 		AttachmentDetach(mAttachmentID);

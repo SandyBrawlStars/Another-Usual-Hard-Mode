@@ -300,6 +300,8 @@ void AwardScreen::Draw(Graphics* g)
                     aMsgChar = _S("[UNLOCKED_VASEBREAKER_LEVEL]");
                 else if (mApp->IsPuzzleMode())
                     aMsgChar = _S("[UNLOCKED_I_ZOMBIE_LEVEL]");
+                else if (mApp->IsExpansionMode())
+                    aMsgChar = _S("Expansion level complete!");
                 else
                     aMsgChar = mApp->GetNumTrophies(CHALLENGE_PAGE_CHALLENGE) <= 17 ? _S("[CHALLENGE_UNLOCKED]") : _S("[GET_MORE_TROPHIES]");
 
@@ -518,10 +520,15 @@ void AwardScreen::ExitScreen()
         mApp->KillAwardScreen();
         mApp->ShowChallengeScreen(CHALLENGE_PAGE_PUZZLE);
     }
-    else if (mApp->IsChallengeMode())
+    else if (mApp->IsPuzzleMode())
     {
         mApp->KillAwardScreen();
-        mApp->ShowChallengeScreen(CHALLENGE_PAGE_CHALLENGE);
+        mApp->ShowChallengeScreen(CHALLENGE_PAGE_PUZZLE);
+    }
+    else if (mApp->IsExpansionMode())
+    {
+        mApp->KillAwardScreen();
+        mApp->ShowChallengeScreen(CHALLENGE_PAGE_EXTRAS);
     }
     else
     {

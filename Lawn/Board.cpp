@@ -601,6 +601,8 @@ void Board::PickZombieWaves()
 			mNumWaves = GetNumWavesPerSurvivalStage();
 		else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || aGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM || mApp->IsSquirrelLevel())
 			mNumWaves = 0;
+		else if (mApp->IsExpansionMode())
+			mNumWaves = GetExpansionLevelWaves(aGameMode);
 		else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_WHACK_A_ZOMBIE)
 			mNumWaves = 12;
 		else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_WALLNUT_BOWLING || aGameMode == GameMode::GAMEMODE_CHALLENGE_AIR_RAID ||
@@ -678,6 +680,11 @@ void Board::PickZombieWaves()
 		else if (mApp->IsWallnutBowlingLevel())
 		{
 			aZombiePoints *= 4.7;
+		}
+		else if (mApp->IsExpansionMode())
+		{
+			GameMode aGameMode = mApp->mGameMode;
+			aZombiePoints *= GetExpansionZombiePointMult(aGameMode);
 		}
 		else if (mApp->IsLittleTroubleLevel())
 		{
@@ -771,6 +778,28 @@ void Board::PickZombieWaves()
 			ZombieType aZombieType = PickZombieType(aZombiePoints, aWave, &aZombiePicker);
 			PutZombieInWave(aZombieType, aWave, &aZombiePicker);
 		}
+	}
+}
+
+int Board::GetExpansionLevelWaves(GameMode theLevel)
+{
+	switch (theLevel)
+	{
+	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
+		return 12;
+	default:
+		return 10;
+	}
+}
+
+float Board::GetExpansionZombiePointMult(GameMode theLevel)
+{
+	switch (theLevel)
+	{
+	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
+		return 2.2;
+	default:
+		return 1;
 	}
 }
 
@@ -899,6 +928,11 @@ void Board::PickBackground()
 	case GameMode::GAMEMODE_CHALLENGE_ICE:
 	case GameMode::GAMEMODE_CHALLENGE_SHOVEL:
 	case GameMode::GAMEMODE_CHALLENGE_SQUIRREL:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_2:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_3:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_4:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_5:
 		mBackground = BackgroundType::BACKGROUND_1_DAY;
 		break;
 
@@ -930,6 +964,7 @@ void Board::PickBackground()
 	case GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_8:
 	case GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_9:
 	case GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS:
+	case GameMode::GAMEMODE_EXPANSION_STAGE_6:
 		mBackground = BackgroundType::BACKGROUND_2_NIGHT;
 		break;
 
@@ -9681,12 +9716,6 @@ void Board::DropLootPiece(int thePosX, int thePosY, int theDropFactor)
 {
 	if (mApp->IsFirstTimeAdventureMode())
 	{
-		if (mLevel == 22 && mCurrentWave > 5 && !mApp->mPlayerInfo->mHasUnlockedMinigames && CountCoinByType(CoinType::COIN_PRESENT_MINIGAMES) == 0)
-		{
-			mApp->PlayFoley(FoleyType::FOLEY_ART_CHALLENGE);
-			AddCoin(thePosX, thePosY, CoinType::COIN_PRESENT_MINIGAMES, CoinMotion::COIN_MOTION_COIN);
-			return;
-		}
 		if (mLevel == 36 && mCurrentWave > 5 && !mApp->mPlayerInfo->mHasUnlockedPuzzleMode && CountCoinByType(CoinType::COIN_PRESENT_PUZZLE_MODE) == 0)
 		{
 			mApp->PlayFoley(FoleyType::FOLEY_ART_CHALLENGE);

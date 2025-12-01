@@ -1719,7 +1719,16 @@ void LawnApp::CheckForGameEnd()
 		else
 		{
 			if (!forceAchievements)
-				ShowChallengeScreen(ChallengePage::CHALLENGE_PAGE_CHALLENGE);
+			{
+				if (IsExpansionMode())
+				{
+					ShowAwardScreen(AwardType::AWARD_FORLEVEL, true);
+				}
+				else
+				{
+					ShowChallengeScreen(ChallengePage::CHALLENGE_PAGE_CHALLENGE);
+				}
+			}
 			else
 				ShowAwardScreen(AwardType::AWARD_ACHIEVEMENTONLY, true);
 		}
@@ -2254,7 +2263,12 @@ bool LawnApp::IsPuzzleMode()
 
 bool LawnApp::IsChallengeMode()
 {
-	return !IsAdventureMode() && !IsPuzzleMode() && !IsSurvivalMode();
+	return !IsAdventureMode() && !IsPuzzleMode() && !IsSurvivalMode() && !IsExpansionMode();
+}
+
+bool LawnApp::IsExpansionMode()
+{
+	return (mGameMode >= GameMode::GAMEMODE_EXPANSION_STAGE_1);
 }
 
 bool LawnApp::IsSurvivalNormal(GameMode theGameMode)
@@ -2579,6 +2593,10 @@ bool LawnApp::HasSeedType(SeedType theSeedType)
 		return mPlayerInfo->mPurchases[theSeedType - SeedType::SEED_GATLINGPEA];
 	*/
 
+	if (theSeedType == SeedType::SEED_GATLINGPEA)
+	{
+		return mPlayerInfo->mPurchases[(int)StoreItem::STORE_ITEM_PLANT_GATLINGPEA] > 0;
+	}
 	if (theSeedType == SeedType::SEED_TWINSUNFLOWER)
 	{
 		return mPlayerInfo->mPurchases[(int)StoreItem::STORE_ITEM_PLANT_TWINSUNFLOWER] > 0;
@@ -3525,7 +3543,7 @@ int LawnApp::GetNumTrophies(ChallengePage thePage)
 
 int LawnApp::GetTotalTrophies(ChallengePage thePage)
 {
-	return thePage == CHALLENGE_PAGE_SURVIVAL ? 10 : thePage == CHALLENGE_PAGE_CHALLENGE ? 20 : thePage == CHALLENGE_PAGE_PUZZLE ? 18 : thePage == CHALLENGE_PAGE_LIMBO ? 0 : 0;
+	return thePage == CHALLENGE_PAGE_SURVIVAL ? 10 : thePage == CHALLENGE_PAGE_EXTRAS ? 25 : thePage == CHALLENGE_PAGE_CHALLENGE ? 20 : thePage == CHALLENGE_PAGE_PUZZLE ? 18 : thePage == CHALLENGE_PAGE_LIMBO ? 0 : 0;
 }
 
 int LawnApp::TrophiesNeedForGoldSunflower()

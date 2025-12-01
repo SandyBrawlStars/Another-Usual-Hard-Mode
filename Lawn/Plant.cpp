@@ -141,6 +141,9 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     mPlantAge = 0;
     mShotsCounter = 0;
     mHealedFlashCounter = 0;
+    mChilledCounter = 0;
+    mCurseCounter = 0;
+    mIceTrapCounter = 0;
 
     Reanimation* aBodyReanim = nullptr;
     if (aPlantDef.mReanimationType != ReanimationType::REANIM_NONE)
@@ -3140,6 +3143,14 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(245, 187, 42);
     }
+    else if (mChilledCounter > 0 || mIceTrapCounter > 0)
+    {
+        aColorOverride = Color(130, 130, 255);
+    }
+    else if (mCurseCounter > 0)
+    {
+        aColorOverride = Color(156, 0, 13);
+    }
     else
     {
         aColorOverride = Color(255, 255, 255);
@@ -3335,16 +3346,73 @@ void Plant::Update()
         doUpdate = true;
     mPlantAge++;
 
+    if (mChilledCounter > 0)
+        mChilledCounter--;
+
+    if (mIceTrapCounter > 0)
+        mIceTrapCounter--;
+
+    if (mCurseCounter > 0)
+    {
+        mCurseCounter--;
+        if (mPlantAge % 10 == 0)
+        {
+            Plant* aPlant = nullptr;
+            while (mBoard->IteratePlants(aPlant))
+            {
+                int aRowDif = aPlant->mRow - mRow;
+                int aColDif = aPlant->mPlantCol - mPlantCol;
+                if (abs(aColDif) <= 1 && abs(aRowDif) <= 1)
+                {
+                    aPlant->mPlantHealth--;
+                }
+            }
+        }
+    }
+
+
     if (doUpdate)
     {
-        UpdateAbilities();
-        Animate();
+        int ChillUpdate = mChilledCounter % 2;
+        if (ChillUpdate == 0 && mIceTrapCounter == 0)
+        {
+            UpdateAbilities();
+            UpdateReanim();
+            Animate();
+        }
+
 
         if (mPlantHealth < 0)
             Die();
-
-        UpdateReanim();
     }
+}
+
+void Plant::FreezePlant(int theChillTime, int theFreezeTime) 
+{
+    if (IsFirePlant(mSeedType, mVariantType)) return;
+    if (IsIcePlant(mSeedType, mVariantType)) return;
+
+    mChilledCounter = max(mChilledCounter, theChillTime);
+    mIceTrapCounter = max(mIceTrapCounter, theFreezeTime);
+    UpdateReanimColor();
+}
+
+bool Plant::IsFirePlant(SeedType theSeedType, PlantVariant thePlantVariant)
+{
+    return
+        theSeedType == SeedType::SEED_TORCHWOOD ||
+        theSeedType == SeedType::SEED_JALAPENO ||
+        thePlantVariant == PlantVariant::SEED_VARIANT_FIREPEA ||
+        thePlantVariant == PlantVariant::SEED_VARIANT_FLAMECHOMPER;
+}
+
+bool Plant::IsIcePlant(SeedType theSeedType, PlantVariant thePlantVariant)
+{
+    return
+        theSeedType == SeedType::SEED_SNOWPEA ||
+        theSeedType == SeedType::SEED_ICESHROOM ||
+        theSeedType == SeedType::SEED_WINTERMELON ||
+        thePlantVariant == PlantVariant::SEED_VARIANT_CRYOCHERRY;
 }
 
 bool Plant::NotOnGround()

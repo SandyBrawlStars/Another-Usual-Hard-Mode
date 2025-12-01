@@ -33,7 +33,8 @@ private:
 		ALMANAC_BUTTON_ZOMBIE,
 		ALMANAC_BUTTON_INDEX,
 		ALMANAC_BUTTON_NEXT,
-		ALMANAC_BUTTON_LAST 
+		ALMANAC_BUTTON_LAST,
+		ALMANAC_BUTTON_EXTRA,
 	};
 
 public:
@@ -69,6 +70,7 @@ public:
 	Rect						mDescriptionRect;
 	Rect						mDescriptionSliderRect;
 	bool						mDescriptionSliderDragging;
+	GameButton*                 mExtraButton;
 
 public:
 	AlmanacDialog(LawnApp* theApp);

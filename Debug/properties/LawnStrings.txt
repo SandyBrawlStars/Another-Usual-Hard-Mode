@@ -327,6 +327,9 @@ Zombie
 [FLAG_ZOMBIE]
 Flag Zombie
 
+[PEASHOOTER_ZOMBIE]
+Peashooter Zombie
+
 [CONEHEAD_ZOMBIE]
 Conehead Zombie
 
@@ -536,7 +539,6 @@ Snow Peas shoot frozen peas that damage and slow the enemy.
 {KEYWORD}Variant 1 (Poison-Pea):{STAT}
 {KEYWORD}   Damage:{STAT} 15/1.6s
 {KEYWORD}   Special:{STAT} Doesn't chill, poisons zombies instead
-{KEYWORD}   Poison System:{STAT} Every 0.75s, zombies take 5 damage for every 3 poison points
 {KEYWORD}   Poison:{STAT} 2.9s Duration, 1 Poison Point (Stacks to 10 points)
 {SHORTLINE}
 {KEYWORD}Variant 2 (Wind-Pea):{STAT}
@@ -561,7 +563,6 @@ Chompers can devour a zombie whole, but they are vulnerable while chewing.
 {KEYWORD}   Damage:{STAT} 5/2s
 {KEYWORD}Range:{STAT} 3.75 tiles in front
 {KEYWORD}   Special:{STAT} Poisons Zombies, deals splash damage in a 1x1 area
-{KEYWORD}   Poison System:{STAT} Every 0.75s, zombies take 5 damage for every 3 poison points
 {KEYWORD}   Poison:{STAT} 0.76s Duration, 1 Poison Point (Stacks to 18 points)
 {SHORTLINE}
 {KEYWORD}Variant 2 (Flame-Chomper):{STAT}
@@ -1051,9 +1052,11 @@ Regular Garden-variety Zombie
 {SHORTLINE}
 {KEYWORD}Variant 1 (Dasher Zombie):{STAT}
 {KEYWORD}   Special:{STAT} Dashes towards plants, deals 250 damage, and then goes back to normal
+{KEYWORD}   Spawnrate:{STAT} 14.2%, minimum wave - 4
 {SHORTLINE}
 {KEYWORD}Variant 2 (Ghost Zombie):{STAT}
 {KEYWORD}   Special:{STAT} After taking 100 damage, becomes intangible and doesn't eat for 6 seconds, before going back to normal
+{KEYWORD}   Spawnrate:{STAT} 14.2%, minimum wave - 3
 {SHORTLINE}
 
 {FLAVOR}This zombie loves brains. Can't get enough. Brains, brains, brains, day in and night out. 
@@ -1072,6 +1075,24 @@ Flag Zombie marks the arrival of a huge pile or "wave" of zombies.
 {FLAVOR}Make no mistake, Flag Zombie loves brains. But somewhere down the line he also picked 
 up a fascination with flags. Maybe it's because the flags always have brains on them. Hard to say.
 
+
+[PEASHOOTER_ZOMBIE_DESCRIPTION_HEADER]
+Peashooter Zombie attacks your defenses from afar.
+
+[PEASHOOTER_ZOMBIE_DESCRIPTION]
+{SHORTLINE}
+{KEYWORD}Toughness:{STAT} 370
+{KEYWORD}Damage:{STAT} 20/1.5s
+{SHORTLINE}
+{KEYWORD}Variant 1 (Snow Pea Zombie):{STAT}
+{KEYWORD}   Special:{STAT} Chills plants for 10 seconds
+{KEYWORD}   Spawnrate:{STAT} 33.3%, minimum wave - 4
+{SHORTLINE}
+{KEYWORD}Variant 2 (Cursed Peashooter Zombie):{STAT}
+{KEYWORD}   Special:{STAT} Curses plants for 3 seconds when attacking
+{KEYWORD}   Spawnrate:{STAT} 22.2%, minimum wave - 4
+{SHORTLINE}
+
 [CONEHEAD_ZOMBIE_DESCRIPTION_HEADER]
 His traffic cone headpiece makes him twice as tough as normal zombies.
 
@@ -1082,9 +1103,11 @@ His traffic cone headpiece makes him twice as tough as normal zombies.
 {KEYWORD}Variant 1 (Ender Conehead):{STAT}
 {KEYWORD}   Special:{STAT} When getting hit, 1 in 8 chance to teleport 30 Units towards your house
 {KEYWORD}   Special:{STAT} When eating, if the target has less than 250 health, Open a portal and dissapear through it after one second, killing the target and the zombie itself
+{KEYWORD}   Spawnrate:{STAT} 12.5%, minimum wave - 4
 {SHORTLINE}
 {KEYWORD}Variant 2 (Garlic Zombie):{STAT}
 {KEYWORD}   Special:{STAT} Every 4 seconds, switch lanes
+{KEYWORD}   Spawnrate:{STAT} 12.5%, minimum wave - 4
 {SHORTLINE}
 
 {FLAVOR}Conehead Zombie shuffled mindlessly forward like every other zombie.
@@ -1099,10 +1122,12 @@ His bucket hat makes him extremely resistant to damage.
 {KEYMETAL}Weakness:{METAL} magnet-shroom
 {KEYWORD}Variant 1 (Defender Bucket):{STAT}
 {KEYWORD}   Special:{STAT} Heals zombies in 3x3 area when hit for 5 health
+{KEYWORD}   Spawnrate:{STAT} 33.3%
 {SHORTLINE}
 {KEYWORD}Variant 2 (Booster Bucket):{STAT}
 {KEYWORD}Toughness:{STAT} 950
 {KEYWORD}   Special:{STAT} When losing bucket, launches the bucket towards all zombies in a 3x3 area, doubling their walk and eat speed
+{KEYWORD}   Spawnrate:{STAT} 22.2%
 {SHORTLINE}
 
 {SHORTLINE}{FLAVOR}Buckethead Zombie always wore a bucket. Part of it was to assert his uniqueness 
@@ -1120,9 +1145,11 @@ Pole Vaulting Zombie vaults with a pole.
 {KEYWORD}Variant 1 (Jack-Vaulter):{STAT}
 {KEYWORD}   Special:{STAT} When jumping, throws a jack box in front of it, dealing 300 damage to plants in a 3x3 area
 {KEYWORD}   Special:{STAT} The first time it reaches a plant, switch lanes instead of jumping
+{KEYWORD}   Spawnrate:{STAT} 25%
 {SHORTLINE}
 {KEYWORD}Variant 2 (Buff vaulter Zombie):{STAT}
 {KEYWORD}   Special:{STAT} Before jumping, heals at a rate of 1/0.3s, and increases speed at a rate of 0.1/1s
+{KEYWORD}   Spawnrate:{STAT} 25%
 {SHORTLINE}
 {FLAVOR}Some zombies take it further, aspire more, push themselves beyond the 
 normal into greatness. That's Pole Vaulting Zombie right there. That is so him.
@@ -2314,6 +2341,9 @@ View Plants
 [VIEW_ZOMBIES]
 View Zombies
 
+[VIEW_EXTRAS]
+Mechanics And More
+
 [BACK_TO_MENU]
 Back to Menu
 
@@ -2814,6 +2844,9 @@ Destroy all zombies and vases to finish the level!
 
 [SUBURBAN_ALMANAC_INDEX]
 Suburban Almanac - Index
+
+[SUBURBAN_ALMANAC_EXTRAS]
+Suburban Almanac - Extras
 
 [SUBURBAN_ALMANAC_PLANTS]
 Suburban Almanac - Plants

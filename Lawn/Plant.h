@@ -194,6 +194,9 @@ public:
     int                     mPlantAge;
     int                     mShotsCounter;
     int                     mHealedFlashCounter;
+    int                     mChilledCounter;
+    int                     mIceTrapCounter;
+    int                     mCurseCounter;
 
 public:
     Plant();
@@ -301,6 +304,9 @@ public:
     bool                    IsAGoldMagnetAboutToSuck();
     bool                    DrawMagnetItemsOnTop();
     void                    UpdatePumpkin();
+    void                    FreezePlant(int theChillTime, int theFreezeTime);
+    bool                    IsFirePlant(SeedType theSeedType, PlantVariant thePlantVariant);
+    bool                    IsIcePlant(SeedType theSeedType, PlantVariant thePlantVariant);
 };
 
 float                       PlantDrawHeightOffset(Board* theBoard, Plant* thePlant, SeedType theSeedType, int theCol, int theRow);
