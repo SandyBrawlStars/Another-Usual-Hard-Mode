@@ -580,6 +580,10 @@ void Challenge::StartLevel()
 	{
 		mBoard->mZombieCountDown = 5500;
 	}
+	if (aGameMode == GAMEMODE_EXPANSION_STAGE_2)
+	{
+		mBoard->mZombieCountDown = 3500;
+	}
 	if (aGameMode == GAMEMODE_CHALLENGE_ZOMBIQUARIUM)
 	{
 		mBoard->DisplayAdvice(_S("[ADVICE_ZOMBIQUARIUM_CLICK_TO_FEED]"), MESSAGE_STYLE_HINT_TALL_FAST, ADVICE_ZOMBIQUARIUM_CLICK_TO_FEED);
@@ -2696,6 +2700,12 @@ void Challenge::InitZombieWaves()
 		aList[ZOMBIE_TRAFFIC_CONE] = true;
 		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_POLEVAULTER] = true;
+	}
+	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_2)
+	{
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_PAIL] = true;
 		}
 	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_2)
 	{

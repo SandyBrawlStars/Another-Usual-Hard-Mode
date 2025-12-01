@@ -677,14 +677,14 @@ void Board::PickZombieWaves()
 		{
 			aZombiePoints *= 6;
 		}
-		else if (mApp->IsWallnutBowlingLevel())
-		{
-			aZombiePoints *= 4.7;
-		}
 		else if (mApp->IsExpansionMode())
 		{
 			GameMode aGameMode = mApp->mGameMode;
 			aZombiePoints *= GetExpansionZombiePointMult(aGameMode);
+		}
+		else if (mApp->IsWallnutBowlingLevel())
+		{
+			aZombiePoints *= 4.7;
 		}
 		else if (mApp->IsLittleTroubleLevel())
 		{
@@ -787,6 +787,8 @@ int Board::GetExpansionLevelWaves(GameMode theLevel)
 	{
 	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
 		return 12;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_2:
+		return 15;
 	default:
 		return 10;
 	}
@@ -797,7 +799,9 @@ float Board::GetExpansionZombiePointMult(GameMode theLevel)
 	switch (theLevel)
 	{
 	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
-		return 2.2;
+		return 2.0;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_2:
+		return 1.2;
 	default:
 		return 1;
 	}
@@ -4970,7 +4974,11 @@ void Board::SpawnZombieWave()
 			}
 			else
 			{
-				AddZombie(aZombieType, mCurrentWave);
+				Zombie* aZombie = AddZombie(aZombieType, mCurrentWave);
+				if (mApp->mGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_2)
+				{
+					aZombie->mBucketBoosted = true;
+				}
 			}
 		}
 	}

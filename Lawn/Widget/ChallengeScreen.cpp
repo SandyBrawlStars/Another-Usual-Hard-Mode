@@ -90,12 +90,12 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS,              11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  4,  _S("[I_ZOMBIE_ENDLESS]") },
 	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("Upsell") },
 	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_1,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  0,  _S("1-11") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_2,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  1,  _S("1-12") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_3,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  2,  _S("1-13") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_4,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  3,  _S("1-14") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_5,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  4,  _S("1-15") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_6,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    1,  0,  _S("2-11") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_1,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  0,  _S("Level 1-11: More Levels?") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_2,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  1,  _S("Level 1-12: Anger Issues") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_3,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  2,  _S("Level 1-13: Unfinished") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_4,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  3,  _S("Level 1-14: Unfinished") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_5,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  4,  _S("Level 1-15: Unfinished") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_6,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    1,  0,  _S("Level 2-11: Unfinished") },
 };
 
 ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
@@ -330,7 +330,7 @@ int ChallengeScreen::MoreTrophiesNeeded(int theChallengeIndex)
 	{
 		int aNumTrophies = mApp->GetNumTrophies(aDef.mPage);
 		int aIdxInPage = aDef.mRow * 5 + aDef.mCol;
-		if (aIdxInPage - aNumTrophies) return 0;
+		if (aIdxInPage < aNumTrophies) return 0;
 		switch (aDef.mRow)
 		{
 		case 0:
@@ -371,7 +371,7 @@ int ChallengeScreen::MoreTrophiesNeeded(int theChallengeIndex)
 			{
 				aNumTrophies += 3;
 			}
-			if (aDef.mPage == CHALLENGE_PAGE_EXTRAS)
+			else if (aDef.mPage == CHALLENGE_PAGE_EXTRAS)
 			{
 				return 0;
 			}
