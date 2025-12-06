@@ -1103,12 +1103,15 @@ void Projectile::DoImpact(Zombie* theZombie)
 	}
 	else
 	{
-		if (mPierceLeft <= 0 && mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+		if (mPierceLeft <= 0)
 		{
-			Reanimation* aFireReanim = mApp->AddReanimation(mPosX + 38.0f, mPosY - 20.0f, mRenderOrder + 1, ReanimationType::REANIM_JALAPENO_FIRE);
-			aFireReanim->mAnimTime = 0.25f;
-			aFireReanim->mAnimRate = 24.0f;
-			aFireReanim->OverrideScale(0.7f, 0.4f);
+			if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
+			{
+				Reanimation* aFireReanim = mApp->AddReanimation(mPosX + 38.0f, mPosY - 20.0f, mRenderOrder + 1, ReanimationType::REANIM_JALAPENO_FIRE);
+				aFireReanim->mAnimTime = 0.25f;
+				aFireReanim->mAnimRate = 24.0f;
+				aFireReanim->OverrideScale(0.7f, 0.4f);
+			}
 			Die();
 		}
 	}
@@ -1176,6 +1179,7 @@ void Projectile::Draw(Graphics* g)
 	else if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
 	{
 		aImage = IMAGE_PROJECTILESNOWPEA;
+		float aScale = -1.0f;
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_FIREBALL)
 	{

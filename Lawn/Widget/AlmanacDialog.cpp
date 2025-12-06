@@ -116,6 +116,13 @@ AlmanacDialog::AlmanacDialog(LawnApp* theApp) : LawnDialog(theApp, DIALOG_ALMANA
 	mZombieSlider->mThumbOffsetX = -1;
 	mZombieSlider->mVisible = false;
 
+	mExtraSlider = new Sexy::Slider(IMAGE_CHALLENGE_SLIDERSLOT, IMAGE_OPTIONS_SLIDERKNOB2, 0, this);
+	mExtraSlider->SetValue(max(0.0, min(mMaxScrollPosition, mScrollPosition)));
+	mExtraSlider->mHorizontal = false;
+	mExtraSlider->Resize(10, 85, 20, 470);
+	mExtraSlider->mThumbOffsetX = -1;
+	mExtraSlider->mVisible = false;
+
 	SetPage(ALMANAC_PAGE_INDEX);
 	if (!mApp->mBoard || !mApp->mBoard->mPaused)
 		mApp->mMusic->MakeSureMusicIsPlaying(MUSIC_TUNE_CHOOSE_YOUR_SEEDS);
@@ -130,6 +137,7 @@ AlmanacDialog::~AlmanacDialog()
 	if (mExtraButton)	delete mExtraButton;
 	delete mPlantSlider;
 	delete mZombieSlider;
+	delete mExtraSlider;
 	ClearObjects();
 }
 
@@ -164,6 +172,7 @@ void AlmanacDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	ClearObjects();
 	RemoveWidget(mPlantSlider);
 	RemoveWidget(mZombieSlider);
+	RemoveWidget(mExtraSlider);
 }
 
 void AlmanacDialog::AddedToManager(WidgetManager* theWidgetManager)
@@ -171,6 +180,7 @@ void AlmanacDialog::AddedToManager(WidgetManager* theWidgetManager)
 	Widget::AddedToManager(theWidgetManager);
 	AddWidget(mPlantSlider);
 	AddWidget(mZombieSlider);
+	AddWidget(mExtraSlider);
 }
 
 
@@ -210,6 +220,7 @@ void AlmanacDialog::SetPage(AlmanacPage thePage)
 	mOpenPage = thePage;
 	mPlantSlider->SetValue(0.1f);
 	mZombieSlider->SetValue(0.1f);
+	mExtraSlider->SetValue(0.1f);
 
 	if (mOpenPage == AlmanacPage::ALMANAC_PAGE_INDEX)
 	{
@@ -291,16 +302,27 @@ void AlmanacDialog::Update()
 		mScrollAmount *= (1.0f - mScrollAccel);
 		mZombieSlider->mVisible = mMaxScrollPosition != 0;
 	}
+	else if (mOpenPage == ALMANAC_PAGE_EXTRA)
+	{
+		mMaxScrollPosition = 100;
+		float aScrollSpeed = mBaseScrollSpeed + abs(mScrollAmount) * mScrollAccel;
+		mScrollPosition += mScrollAmount * aScrollSpeed;
+		mScrollPosition = ClampFloat(mScrollPosition, 0, mMaxScrollPosition);
+		mScrollAmount *= (1.0f - mScrollAccel);
+		mExtraSlider->mVisible = mMaxScrollPosition != 0;
+	}
 	else
 	{
 		mScrollAmount = 0;
 		mScrollPosition = 0;
 		mPlantSlider->mVisible = false;
 		mZombieSlider->mVisible = false;
+		mExtraSlider->mVisible = false;
 	}
 
 	mPlantSlider->SetValue(max(0.0, min(mMaxScrollPosition, mScrollPosition)) / mMaxScrollPosition);
 	mZombieSlider->SetValue(max(0.0, min(mMaxScrollPosition, mScrollPosition)) / mMaxScrollPosition);
+	mExtraSlider->SetValue(max(0.0, min(mMaxScrollPosition, mScrollPosition)) / mMaxScrollPosition);
 
 	for (Zombie* aZombie : mZombiePerfTest)
 	{
@@ -310,7 +332,7 @@ void AlmanacDialog::Update()
 		}
 	}
 
-	if (!(mPlantSlider->mIsOver || mPlantSlider->mDragging) && !(mZombieSlider->mIsOver || mZombieSlider->mDragging))
+	if (!(mPlantSlider->mIsOver || mPlantSlider->mDragging) && !(mZombieSlider->mIsOver || mZombieSlider->mDragging) && !(mExtraSlider->mIsOver || mExtraSlider->mDragging))
 	{
 		ZombieType aZombieType = ZombieHitTest(mLastMouseX, mLastMouseY);
 		if (SeedHitTest(mLastMouseX, mLastMouseY) != SeedType::SEED_NONE || (aZombieType != ZOMBIE_INVALID && ZombieIsShown(aZombieType)) ||
@@ -678,38 +700,55 @@ void AlmanacDialog::Draw(Graphics* g)
 		g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEBACK, 0, 0);
 		TodDrawString(g, _S("[SUBURBAN_ALMANAC_EXTRAS]"), BOARD_WIDTH / 2, 55, Sexy::FONT_HOUSEOFTERROR20, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_CENTER);
 
-		int aPosY = 100;
-		TodDrawString(g, _S("Zombie Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(224, 127, 16), DrawStringJustification::DS_ALIGN_LEFT);
+		int aPosY = 100 - mScrollPosition;
+		int aMin = 90, aMax = 550;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Zombie Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(224, 127, 16), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("Zombies have a random chance to show up as a variant,"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Zombies have a random chance to show up as a variant,"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("stats and abilities listed in their almanac entries."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("stats and abilities listed in their almanac entries."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
-		TodDrawString(g, _S("Plant Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(32, 207, 4), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Plant Variant System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(32, 207, 4), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("You can select the variant of plants by clicking on"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("You can select the variant of plants by clicking on"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("them, most plants have 3, single use plants have 2."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("them, most plants have 3, single use plants have 2."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
-		TodDrawString(g, _S("Poison System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(69, 156, 3), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Poison System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(69, 156, 3), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("Every 0.75s, zombies take 5 damage for every 3 poison points."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Every 0.75s, zombies take 5 damage for every 3 poison points."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
-		TodDrawString(g, _S("Curse System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(156, 11, 3), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Curse System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(156, 11, 3), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("Cursed Plants take damage and damage other plants in a 3x3"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Cursed plants take damage and damage other plants in a 3x3"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("area in a rate of 1/0.1s."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("area in a rate of 1/0.1s."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
-		TodDrawString(g, _S("Adventure Expansions:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(66, 135, 245), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Enrage System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(156, 11, 3), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("After beating a world, you will unlock 5 expansion levels"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Enraged zombies walk and eat at double the speed, does"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		TodDrawString(g, _S("for that world, they are optional and give extra rewards."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("not go away."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Adventure Expansions:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(66, 135, 245), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("After beating a world, you will unlock 5 expansion levels"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("for that world, they are optional and give extra rewards."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Ultimate Challenges:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(245, 28, 12), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("At the end of an expansion pack, there will be a boss fight,"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("their attacks are listed in the almanac after the original entry"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("for that zombie."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 	}
 

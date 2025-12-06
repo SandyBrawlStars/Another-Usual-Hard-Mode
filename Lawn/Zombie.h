@@ -166,6 +166,7 @@ public:
     int                             mPoisonedCounter;
     int                             mPoisonStack;
     bool                            mBucketBoosted;
+    bool                            mIsBoss;
 
 public:
     Zombie();
@@ -193,6 +194,7 @@ public:
     bool                            EffectedByDamage(unsigned int theDamageRangeFlags);
     void                            PickRandomSpeed();
     void                            UpdateZombiePolevaulter();
+    void                            UpdateZombieBossVaulter();
     void                            UpdateZombieDolphinRider();
     void                            PickBungeeZombieTarget(int theColumn);
     int                             CountBungeesTargetingSunFlowers();

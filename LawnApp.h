@@ -269,6 +269,7 @@ public:
 	/*inline*/ bool					IsLittleTroubleLevel();
 	/*inline*/ bool					IsStormyNightLevel();
 	/*inline*/ bool					IsFinalBossLevel();
+	/*inline*/ bool					IsExtraBossLevel();
 	/*inline*/ bool					IsBungeeBlitzLevel();
 	static /*inline*/ SeedType		GetAwardSeedForLevel(int theLevel);
 	SexyString						GetCrazyDaveText(int theMessageIndex);

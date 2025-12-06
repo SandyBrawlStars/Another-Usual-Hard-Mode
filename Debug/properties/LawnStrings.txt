@@ -501,8 +501,8 @@ Potato Mines pack a powerful punch, but they need a while to arm themselves. You
 {SHORTLINE}
 {KEYWORD}Variant 1 (Multi-Mine):{STAT}
 {KEYWORD}   Damage:{STAT} 70 (3x3)
-{KEYWORD}   Knockback:{STAT} 30 Units
-{KEYWORD}   Special:{STAT} Can damage and knockback multiple times, but loses 35 health for each zombie in blast radius
+{KEYWORD}   Knockback:{STAT} 0.375 Tiles
+{KEYWORD}   Special:{STAT} Can damage and knockback multiple times, but loses 40 health for each zombie in blast radius
 {SHORTLINE}
 {FLAVOR}Some folks say Potato Mine is lazy, that he leaves everything to the last 
 minute. Potato Mine says nothing. He's too busy thinking about his investment strategy.
@@ -516,7 +516,7 @@ Repeaters fire two peas at a time.
 {SHORTLINE}
 {KEYWORD}Variant 1 (Primal Repeater):{STAT}
 {KEYWORD}   Damage:{STAT} 17/2.3s
-{KEYWORD}   Knockback:{STAT} 9 units per pea
+{KEYWORD}   Knockback:{STAT} 0.11 Tiles per pea
 {SHORTLINE}
 {KEYWORD}Variant 2 (Divide-peater):{STAT}
 {KEYWORD}   Damage:{STAT} 15/1.8s
@@ -534,7 +534,6 @@ Snow Peas shoot frozen peas that damage and slow the enemy.
 {SHORTLINE}
 {KEYWORD}Damage:{STAT} 20/1.5s
 {KEYWORD}Chill:{STAT} 10s
-
 {SHORTLINE}
 {KEYWORD}Variant 1 (Poison-Pea):{STAT}
 {KEYWORD}   Damage:{STAT} 15/1.6s
@@ -569,7 +568,7 @@ Chompers can devour a zombie whole, but they are vulnerable while chewing.
 {KEYWORD}   Damage:{STAT} 25/2s
 {KEYWORD}Range:{STAT} 2.12 tiles in front
 {KEYWORD}   Special:{STAT} Splash damage in a 3x3 area, knockback
-{KEYWORD}   Knockback:{STAT} 5 units
+{KEYWORD}   Knockback:{STAT} 0.06 Tiles
 
 {FLAVOR}Chomper almost got a gig doing stunts for The Little Shop of Horrors but it fell 
 through when his agent demanded too much on the front end. Chomper's not resentful, 
@@ -1101,7 +1100,7 @@ His traffic cone headpiece makes him twice as tough as normal zombies.
 {KEYWORD}Toughness:{STAT} 370 + 470 (Helmet)
 {SHORTLINE}
 {KEYWORD}Variant 1 (Ender Conehead):{STAT}
-{KEYWORD}   Special:{STAT} When getting hit, 1 in 8 chance to teleport 30 Units towards your house
+{KEYWORD}   Special:{STAT} When getting hit, 1 in 8 chance to teleport 0.375 Tiles towards your house
 {KEYWORD}   Special:{STAT} When eating, if the target has less than 250 health, Open a portal and dissapear through it after one second, killing the target and the zombie itself
 {KEYWORD}   Spawnrate:{STAT} 12.5%, minimum wave - 4
 {SHORTLINE}
@@ -1118,15 +1117,15 @@ His bucket hat makes him extremely resistant to damage.
 
 [BUCKETHEAD_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} 1570
+{KEYWORD}Toughness:{STAT} 370 + 1200 (Helmet)
 {KEYMETAL}Weakness:{METAL} magnet-shroom
 {KEYWORD}Variant 1 (Defender Bucket):{STAT}
 {KEYWORD}   Special:{STAT} Heals zombies in 3x3 area when hit for 5 health
 {KEYWORD}   Spawnrate:{STAT} 33.3%
 {SHORTLINE}
 {KEYWORD}Variant 2 (Booster Bucket):{STAT}
-{KEYWORD}Toughness:{STAT} 950
-{KEYWORD}   Special:{STAT} When losing bucket, launches the bucket towards all zombies in a 3x3 area, doubling their walk and eat speed
+{KEYWORD}Toughness:{STAT} 800 + 150 (Helmet)
+{KEYWORD}   Special:{STAT} When losing bucket, launches the bucket towards all zombies in a 3x3 area, enraging them
 {KEYWORD}   Spawnrate:{STAT} 22.2%
 {SHORTLINE}
 
@@ -1149,8 +1148,17 @@ Pole Vaulting Zombie vaults with a pole.
 {SHORTLINE}
 {KEYWORD}Variant 2 (Buff vaulter Zombie):{STAT}
 {KEYWORD}   Special:{STAT} Before jumping, heals at a rate of 1/0.3s, and increases speed at a rate of 0.1/1s
+{KEYWORD}   Special:{STAT} Jumps 2 tiles, 3 with flag zombie's boost
 {KEYWORD}   Spawnrate:{STAT} 25%
 {SHORTLINE}
+{KEYWORD}Boss Variant (Mega-Vaulter):{STAT}
+{KEYWORD}   Attack 1:{STAT} Spawns the next wave, consisting of basics, coneheads and polevaulters, 12 second cooldown.
+{KEYWORD}   Attack 2:{STAT} Throws a jackbox projectile two columns forward, dealing 300 damage to plants in a 3x3 area, 5 second cooldown.
+{KEYWORD}   Attack 3:{STAT} Spawns 2-4 random zombies in a 3x5 area (Normal, Peahead, Conehead, Buckethead), 3.3 second cooldown for each zombie spawned.
+Spawns more zombies in later waves.
+{KEYWORD}   Attack 4:{STAT} Freezes every plant on the board for 5 seconds, 3.5 second cooldown.
+{KEYWORD}   Attack 5:{STAT} Enrages every other zombie on the lawn, 1.2 second cooldown for every zombie spawned + 2 second base cooldown.
+
 {FLAVOR}Some zombies take it further, aspire more, push themselves beyond the 
 normal into greatness. That's Pole Vaulting Zombie right there. That is so him.
 

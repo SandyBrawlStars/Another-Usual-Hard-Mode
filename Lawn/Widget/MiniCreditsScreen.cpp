@@ -17,6 +17,7 @@ MiniCreditsScreen::MiniCreditsScreen(LawnApp* theApp)
 	mApp->mMusic->MakeSureMusicIsPlaying(MUSIC_TUNE_CHOOSE_YOUR_SEEDS);
 	TodLoadResources("DelayLoad_ChallengeScreen");
 	TodLoadResources("DelayLoad_Credits");
+	TodLoadResources("DelayLoad_Background2");
 
 	mBackButton = MakeNewButton(0, this, _S("[BACK_TO_MENU]"), nullptr, Sexy::IMAGE_SEEDCHOOSER_BUTTON2,
 		Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW, Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW);
@@ -48,16 +49,16 @@ MiniCreditsScreen::~MiniCreditsScreen()
 void MiniCreditsScreen::Draw(Graphics* g)
 {
 	//g->SetLinearBlend(true);
-	g->DrawImage(Sexy::IMAGE_CREDITS_BG, 0, 0);
+	g->DrawImage(Sexy::IMAGE_BACKGROUND2, -220, 0);
 	TodDrawString(g, "CREDITS", 400, 58, Sexy::FONT_HOUSEOFTERROR28, Color(220, 220, 220), DS_ALIGN_CENTER);
 
 	Color TextColor = Color(255, 255, 255);
 
-	TodDrawString(g, "'insert your mod name' Team \n", 400, 120, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
-	TodDrawString(g, "Insert Name\n", 400, 140, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
-	TodDrawString(g, "Insert Name\n", 400, 160, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
-	TodDrawString(g, "Insert Name\n", 400, 180, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
-	TodDrawString(g, "Insert Name\n", 400, 200, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "Another Usual Hard Mode Team \n", 400, 120, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "Sandy\n", 400, 140, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "\n", 400, 160, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "\n", 400, 180, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "\n", 400, 200, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
 
 	TodDrawString(g, "Plants Vs. Zombies Team \n", 120, 420, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
 	TodDrawString(g, "George Fan\n", 120, 440, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);

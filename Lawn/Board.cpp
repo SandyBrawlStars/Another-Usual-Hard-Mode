@@ -789,6 +789,10 @@ int Board::GetExpansionLevelWaves(GameMode theLevel)
 		return 12;
 	case GameMode::GAMEMODE_EXPANSION_STAGE_2:
 		return 15;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_3:
+		return 18;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_4:
+		return 20;
 	default:
 		return 10;
 	}
@@ -799,9 +803,13 @@ float Board::GetExpansionZombiePointMult(GameMode theLevel)
 	switch (theLevel)
 	{
 	case GameMode::GAMEMODE_EXPANSION_STAGE_1:
-		return 2.0;
+		return 1.8;
 	case GameMode::GAMEMODE_EXPANSION_STAGE_2:
 		return 1.2;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_3:
+		return 1.2;
+	case GameMode::GAMEMODE_EXPANSION_STAGE_4:
+		return 1.3;
 	default:
 		return 1;
 	}
@@ -1481,6 +1489,10 @@ void Board::InitLevel()
 	{
 		mSunMoney = 5000;
 	}
+	else if (aGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_5)
+	{
+		mSunMoney = 1750;
+	}
 	else if (mApp->IsIZombieLevel())
 	{
 		mSunMoney = 150;
@@ -1776,6 +1788,14 @@ void Board::StartLevel()
 		mApp->EraseFile(GetSavedGameName(mApp->mGameMode, mApp->mPlayerInfo->mId));
 		FreezeEffectsForCutscene(false);
 		mApp->mSoundSystem->GamePause(false);
+	}
+	if (mApp->mGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_5)
+	{
+		Zombie* aZombie = AddZombie(ZombieType::ZOMBIE_POLEVAULTER, 0);
+		aZombie->mIsBoss = true;
+		aZombie->mBodyHealth = 8500;
+		aZombie->mBodyMaxHealth = 8500;
+		aZombie->mPhaseCounter = 1000;
 	}
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE || 
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || 
@@ -4975,10 +4995,6 @@ void Board::SpawnZombieWave()
 			else
 			{
 				Zombie* aZombie = AddZombie(aZombieType, mCurrentWave);
-				if (mApp->mGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_2)
-				{
-					aZombie->mBucketBoosted = true;
-				}
 			}
 		}
 	}
@@ -5457,6 +5473,18 @@ void Board::UpdateIce()
 void Board::UpdateProgressMeter()
 {
 	if (mApp->IsFinalBossLevel())
+	{
+		Zombie* aBoss = GetBossZombie();
+		if (aBoss && !aBoss->IsDeadOrDying())
+		{
+			mProgressMeterWidth = 150 * (aBoss->mBodyMaxHealth - aBoss->mBodyHealth) / aBoss->mBodyMaxHealth;
+		}
+		else
+		{
+			mProgressMeterWidth = 150;
+		}
+	}
+	if (mApp->IsExtraBossLevel())
 	{
 		Zombie* aBoss = GetBossZombie();
 		if (aBoss && !aBoss->IsDeadOrDying())
@@ -6661,6 +6689,7 @@ bool Board::HasProgressMeter()
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST || 
 		mApp->IsFinalBossLevel() || 
 		mApp->IsSlotMachineLevel() || 
+		mApp->IsExtraBossLevel() ||
 		mApp->IsSquirrelLevel() || 
 		mApp->IsIZombieLevel())
 		return true;
@@ -6684,6 +6713,7 @@ bool Board::ProgressMeterHasFlags()
 
 	if (mApp->IsWhackAZombieLevel() ||
 		mApp->IsFinalBossLevel() ||
+		mApp->IsExtraBossLevel() ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST ||
 		mApp->IsSlotMachineLevel() ||
@@ -6766,7 +6796,8 @@ void Board::DrawProgressMeter(Graphics* g)
 		mApp->IsSquirrelLevel() || 
 		mApp->IsSlotMachineLevel() ||
 		mApp->IsIZombieLevel() || 
-		mApp->IsFinalBossLevel())
+		mApp->IsFinalBossLevel() ||
+		mApp->IsExtraBossLevel())
 		return;
 	int aHeadProgress = TodAnimateCurve(0, 150, mProgressMeterWidth, 0, 135, CURVE_LINEAR);
 	g->DrawImageCel(Sexy::IMAGE_FLAGMETERPARTS, aCelWidth - aHeadProgress + 580, 572, 0, 0);
@@ -9188,6 +9219,7 @@ bool Board::StageHasZombieWalkInFromRight()
 		mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZOMBIQUARIUM ||
 		mApp->IsFinalBossLevel() ||
+		mApp->IsExtraBossLevel() ||
 		mApp->IsIZombieLevel() ||
 		mApp->IsSquirrelLevel() ||
 		mApp->IsScaryPotterLevel())
@@ -9858,7 +9890,7 @@ Zombie* Board::GetBossZombie()
 	Zombie* aZombie = nullptr;
 	while (IterateZombies(aZombie))
 	{
-		if (aZombie->mZombieType == ZombieType::ZOMBIE_BOSS)
+		if (aZombie->mZombieType == ZombieType::ZOMBIE_BOSS || aZombie->mIsBoss)
 		{
 			return aZombie;
 		}

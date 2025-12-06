@@ -71,6 +71,7 @@ public:
 	Rect						mDescriptionSliderRect;
 	bool						mDescriptionSliderDragging;
 	GameButton*                 mExtraButton;
+	Sexy::Slider*				mExtraSlider;
 
 public:
 	AlmanacDialog(LawnApp* theApp);

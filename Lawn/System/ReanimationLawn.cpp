@@ -288,6 +288,30 @@ MemoryImage* ReanimatorCache::MakeCachedZombieFrame(ZombieType theZombieType)
 			aReanim.AssignRenderGroupToTrack("anim_head2", RENDER_GROUP_HIDDEN);
 			aReanim.AssignRenderGroupToTrack("anim_hair", RENDER_GROUP_HIDDEN);
 		}
+		else if (theZombieType == ZombieType::ZOMBIE_REPEATER_HEAD)
+		{
+			Reanimation aReanimHead;
+			aReanimHead.ReanimationInitializeType(aPosX + 72, aPosY - 2, ReanimationType::REANIM_REPEATER);
+			aReanimHead.SetFramesForLayer("anim_head_idle");
+			aReanimHead.OverrideScale(-1.0f, 1.0f);
+			aReanimHead.Draw(&aMemoryGraphics);
+			aReanim.AssignRenderGroupToTrack("Zombie_neck", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head1", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head2", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_hair", RENDER_GROUP_HIDDEN);
+		}
+		else if (theZombieType == ZombieType::ZOMBIE_SUNFLOWER_HEAD)
+		{
+			Reanimation aReanimHead;
+			aReanimHead.ReanimationInitializeType(aPosX + 75, aPosY - 8, ReanimationType::REANIM_SUNFLOWER);
+			aReanimHead.SetFramesForLayer("anim_head_idle");
+			aReanimHead.OverrideScale(-1.0f, 1.0f);
+			aReanimHead.Draw(&aMemoryGraphics);
+			aReanim.AssignRenderGroupToTrack("Zombie_neck", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head1", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head2", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_hair", RENDER_GROUP_HIDDEN);
+		}
 		else if (theZombieType == ZombieType::ZOMBIE_GATLING_HEAD)
 		{
 			Reanimation aReanimHead;
@@ -312,8 +336,19 @@ MemoryImage* ReanimatorCache::MakeCachedZombieFrame(ZombieType theZombieType)
 			aReanim.AssignRenderGroupToTrack("anim_head2", RENDER_GROUP_HIDDEN);
 			aReanim.AssignRenderGroupToTrack("anim_hair", RENDER_GROUP_HIDDEN);
 		}
-
-		if (theZombieType == ZombieType::ZOMBIE_WALLNUT_HEAD)
+		else if (theZombieType == ZombieType::ZOMBIE_CABBAGE_HEAD)
+		{
+			Reanimation aReanimHead;
+			aReanimHead.ReanimationInitializeType(aPosX + 74, aPosY - 10, ReanimationType::REANIM_CABBAGEPULT);
+			aReanimHead.SetFramesForLayer("anim_idle");
+			aReanimHead.OverrideScale(-0.9f, 0.9f);
+			aReanimHead.Draw(&aMemoryGraphics);
+			aReanim.AssignRenderGroupToTrack("Zombie_neck", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head1", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_head2", RENDER_GROUP_HIDDEN);
+			aReanim.AssignRenderGroupToTrack("anim_hair", RENDER_GROUP_HIDDEN);
+		}
+		else if (theZombieType == ZombieType::ZOMBIE_WALLNUT_HEAD)
 		{
 			Reanimation aReanimHead;
 			aReanimHead.ReanimationInitializeType(aPosX + 55, aPosY - 2, ReanimationType::REANIM_WALLNUT);

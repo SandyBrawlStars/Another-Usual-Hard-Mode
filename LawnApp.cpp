@@ -2305,6 +2305,7 @@ bool LawnApp::IsContinuousChallenge()
 		IsArtChallenge() || 
 		IsSlotMachineLevel() || 
 		IsFinalBossLevel() || 
+		IsExtraBossLevel() ||
 		mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED || 
 		mGameMode == GameMode::GAMEMODE_UPSELL || 
 		mGameMode == GameMode::GAMEMODE_INTRO || 
@@ -2466,6 +2467,14 @@ bool LawnApp::IsFinalBossLevel()
 		return mQuickLevel == 50;
 
 	return IsAdventureMode() && mPlayerInfo->mLevel == 50;
+}
+
+bool LawnApp::IsExtraBossLevel()
+{
+	if (mBoard == nullptr)
+		return false;
+
+	return mGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_5;
 }
 
 bool LawnApp::IsChallengeWithoutSeedBank()
@@ -3671,6 +3680,8 @@ void LawnApp::UpdateDiscordState(SexyString def)
 			State = "Almanac (Zombies)";
 		else if (dialog->mOpenPage == AlmanacPage::ALMANAC_PAGE_PLANTS)
 			State = "Almanac (Plants)";
+		else if (dialog->mOpenPage == AlmanacPage::ALMANAC_PAGE_EXTRA)
+			State = "Almanac (Extra Mechanics)";
 	}
 	else if (GetDialog(Dialogs::DIALOG_STORE))
 		State = "Store";

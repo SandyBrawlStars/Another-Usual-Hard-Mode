@@ -4751,7 +4751,7 @@ void Plant::MouseDown(int x, int y, int theClickCount)
             if (mVariantType == PlantVariant::SEED_VARIANT_FIREPEA)
             {
                 mVariantType = PlantVariant::SEED_VARIANT_ELECTROPEA;
-                mLaunchRate = 350;
+                mLaunchRate = 330;
                 mLaunchCounter = 250;
             }
             else if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
@@ -5469,6 +5469,11 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mDamageOverride = 0;
         aProjectile->mPierces = true;
         aProjectile->mPierceLeft = 999;
+    }
+
+    if (mVariantType == PlantVariant::SEED_VARIANT_ELECTROPEA)
+    {
+        aProjectile->mPierces = true;
     }
 
     if (aProjectile->mProjectileType == ProjectileType::PROJECTILE_FIREBALL)

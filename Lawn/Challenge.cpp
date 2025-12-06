@@ -2500,6 +2500,10 @@ PlantingReason Challenge::CanPlantAt(int theGridX, int theGridY, SeedType theSee
 	{
 		return PLANTING_NOT_HERE;
 	}
+	else if (mApp->IsExtraBossLevel() && theGridX >= 6)
+	{
+		return PLANTING_NOT_HERE;
+	}
 
 	return PLANTING_OK;
 }
@@ -2706,7 +2710,28 @@ void Challenge::InitZombieWaves()
 		aList[ZOMBIE_TRAFFIC_CONE] = true;
 		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_PAIL] = true;
-		}
+	}
+	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_3)
+	{
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_PAIL] = true;
+		aList[ZOMBIE_POLEVAULTER] = true;
+	}
+	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_4)
+	{
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_PAIL] = true;
+		aList[ZOMBIE_POLEVAULTER] = true;
+		aList[ZOMBIE_PEA_HEAD] = true;
+	}
+	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_5)
+	{
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_POLEVAULTER] = true;
+	}
 	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_2)
 	{
 		aList[ZOMBIE_PEA_HEAD] = true;
@@ -2930,6 +2955,7 @@ bool Challenge::UpdateZombieSpawning()
 	}
 	else return
 		mApp->IsFinalBossLevel() ||
+		mApp->IsExtraBossLevel() ||
 		mApp->mGameMode == GAMEMODE_CHALLENGE_ICE ||
 		mApp->mGameMode == GAMEMODE_CHALLENGE_ZEN_GARDEN ||
 		mApp->mGameMode == GAMEMODE_TREE_OF_WISDOM ||

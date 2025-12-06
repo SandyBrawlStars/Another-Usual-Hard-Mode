@@ -321,8 +321,13 @@ unsigned int SeedChooserScreen::SeedNotRecommendedToPick(SeedType theSeedType)
 
 bool SeedChooserScreen::SeedNotAllowedToPick(SeedType theSeedType)
 {
-	return mApp->mGameMode == GAMEMODE_CHALLENGE_LAST_STAND && (theSeedType == SEED_SUNFLOWER || theSeedType == SEED_SUNSHROOM ||
-		theSeedType == SEED_TWINSUNFLOWER || theSeedType == SEED_SEASHROOM || theSeedType == SEED_PUFFSHROOM);
+	if (mApp->mGameMode == GAMEMODE_CHALLENGE_LAST_STAND)
+		return theSeedType == SEED_SUNFLOWER || theSeedType == SEED_SUNSHROOM ||
+			theSeedType == SEED_TWINSUNFLOWER || theSeedType == SEED_SEASHROOM || theSeedType == SEED_PUFFSHROOM;
+	if (mApp->mGameMode == GAMEMODE_EXPANSION_STAGE_4)
+		return theSeedType == SEED_SUNFLOWER || theSeedType == SEED_SUNSHROOM ||
+		theSeedType == SEED_TWINSUNFLOWER || theSeedType == SEED_SEASHROOM || theSeedType == SEED_PUFFSHROOM;
+	return false;
 }
 
 bool SeedChooserScreen::SeedNotAllowedDuringTrial(SeedType theSeedType)
@@ -670,7 +675,7 @@ void SeedChooserScreen::OnStartButton()
 		}
 	}
 	if (!PickedPlantType(SEED_SUNFLOWER) && !PickedPlantType(SEED_TWINSUNFLOWER) && !PickedPlantType(SEED_SUNSHROOM) &&
-		!mBoard->mCutScene->IsSurvivalRepick() && mApp->mGameMode != GAMEMODE_CHALLENGE_LAST_STAND)
+		!mBoard->mCutScene->IsSurvivalRepick() && mApp->mGameMode != GAMEMODE_CHALLENGE_LAST_STAND && mApp->mGameMode != GAMEMODE_EXPANSION_STAGE_4)
 	{
 		if (mApp->IsFirstTimeAdventureMode() && mBoard->mLevel == 11)
 		{
