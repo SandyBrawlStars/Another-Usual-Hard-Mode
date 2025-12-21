@@ -155,6 +155,7 @@ LawnApp::LawnApp()
 	mProfileMgr = new ProfileMgr();
 	mRegisterResourcesLoaded = false;
 	mTodCheatKeys = false;
+	mExtraBars = true;
 	mCrazyDaveReanimID = ReanimationID::REANIMATIONID_NULL;
 	mCrazyDaveState = CrazyDaveState::CRAZY_DAVE_OFF;
 	mCrazyDaveBlinkCounter = 0;
@@ -1208,6 +1209,7 @@ bool LawnApp::KillNewOptionsDialog()
 		mAutoCollectCoins = aNewOptionsDialog->mAutoCollectCoinsBox->IsChecked();
 		mZombieHealthbars = aNewOptionsDialog->mZombieHealthbarsBox->IsChecked();
 		mPlantHealthbars = aNewOptionsDialog->mPlantHealthbarsBox->IsChecked();
+		mExtraBars = aNewOptionsDialog->mExtraBarsBox->IsChecked();
 		ToggleDebugMode();
 		bool wantWindowed = !aNewOptionsDialog->mFullscreenCheckbox->IsChecked();
 		SwitchScreenMode(wantWindowed, want3D, false);
@@ -1491,6 +1493,7 @@ void LawnApp::HandleCmdLineParam(const std::string& theParamName, const std::str
 #ifdef _DEBUG
 		mTodCheatKeys = true;
 		mDebugKeysEnabled = true;
+		mExtraBars = true;
 #endif
 	}
 	else

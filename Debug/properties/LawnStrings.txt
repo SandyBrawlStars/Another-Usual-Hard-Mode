@@ -1167,9 +1167,10 @@ His newspaper provides limited defense.
 
 [NEWSPAPER_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
-{KEYWORD}Toughness:{STAT} low {270}
-{KEYWORD}Newspaper Toughness:{STAT} low {150}
+{KEYWORD}Toughness:{STAT} 370
+{KEYWORD}Newspaper Toughness:{STAT}50}
 {KEYWORD}Speed:{STAT} normal, then fast (after losing newspaper)
+{KEYWORD}Bite Power:{STAT} 1, 2 after losing newspaper
 {SHORTLINE}
 {FLAVOR}Newspaper Zombie was *this* close to finishing his sudoku puzzle. No wonder he's freaking out.
 

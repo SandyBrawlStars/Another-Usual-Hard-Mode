@@ -167,6 +167,9 @@ public:
     int                             mPoisonStack;
     bool                            mBucketBoosted;
     bool                            mIsBoss;
+    int                             mEatPower;
+    bool                            mSunBeaned;
+    float                           mSunBanked;
 
 public:
     Zombie();

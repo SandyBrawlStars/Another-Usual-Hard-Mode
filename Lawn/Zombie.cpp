@@ -45,7 +45,7 @@ ZombieDefinition gZombieDefs[NUM_ZOMBIE_TYPES] = {
     { ZOMBIE_IMP,               REANIM_IMP,                 10,     48,     1,      0,      _S("IMP")},
     { ZOMBIE_BOSS,              REANIM_BOSS,                10,     50,     1,      0,      _S("BOSS")},
     { ZOMBIE_REDEYE_GARGANTUAR, REANIM_GARGANTUAR,          10,     48,     15,     6000,   _S("REDEYED_GARGANTUAR")},
-    { ZOMBIE_PEA_HEAD,          REANIM_ZOMBIE,              2,      10,     3,      2500,   _S("PEASHOOTER_ZOMBIE")},
+    { ZOMBIE_PEA_HEAD,          REANIM_ZOMBIE,              2,      10,     5,      2500,   _S("PEASHOOTER_ZOMBIE")},
     { ZOMBIE_WALLNUT_HEAD,      REANIM_ZOMBIE,              4,      30,     5,      3000,   _S("WALLNUT_ZOMBIE")},
     { ZOMBIE_JALAPENO_HEAD,     REANIM_ZOMBIE,              5,      40,     10,     1000,   _S("JALAPENO_ZOMBIE")},
     { ZOMBIE_GATLING_HEAD,      REANIM_ZOMBIE,              6,      34,     10,     2000,   _S("GATLING_ZOMBIE")},
@@ -67,6 +67,8 @@ ZombieVariantDefinition gZombieVariantDefs[NUM_ZOMBIE_VARIANTS] = {
     {ZOMBIE_VARIANT_BOOSTER,     _S("BOOSTER"),       ZOMBIE_PAIL},
     {ZOMBIE_VARIANT_CURSESHOOTER,     _S("CURSESHOOTER"),       ZOMBIE_PEA_HEAD},
     {ZOMBIE_VARIANT_SNOWPEA,     _S("SNOW_PEA"),       ZOMBIE_PEA_HEAD},
+    {ZOMBIE_VARIANT_STARPAPER,          _S("STARPAPER"),            ZOMBIE_NEWSPAPER},
+    {ZOMBIE_VARIANT_MINERPAPER,          _S("MINEPAPER"),            ZOMBIE_NEWSPAPER},
 };
 
 static ZombieType gBossZombieList[] = {  
@@ -172,6 +174,9 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
     mMoweredReanimID = ReanimationID::REANIMATIONID_NULL;
     mLastPortalX = -1;
     mIsBoss = false;
+    mEatPower = 1;
+    mSunBeaned = false;
+    mSunBanked = 0;
     
     mBucketBoosted = false;
     if (mApp->mGameMode == GameMode::GAMEMODE_EXPANSION_STAGE_2)
@@ -597,9 +602,18 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
         mZombieAttackRect = Rect(20, 0, 50, 115);
         mZombiePhase = ZombiePhase::PHASE_NEWSPAPER_READING;
         mShieldType = ShieldType::SHIELDTYPE_NEWSPAPER;
-        mShieldHealth = 150;
+        mShieldHealth = 50;
+        mBodyHealth = 470;
         mVariant = false;
         AttachShield();
+        if (RandRangeInt(1, 4) == 4 && mBoard && mBoard->mCurrentWave > 3)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_STARPAPER);
+        }
+        else if (RandRangeInt(1, 4) == 4 && mBoard && mBoard->mCurrentWave > 3)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_MINERPAPER);
+        }
         break;
 
     case ZombieType::ZOMBIE_BALLOON:  
@@ -1287,6 +1301,7 @@ void Zombie::PickRandomSpeed()
         mZombiePhase == ZombiePhase::PHASE_DOLPHIN_WALKING_WITHOUT_DOLPHIN)
     {
         mVelX = RandRangeFloat(0.89f, 0.91f);
+        if (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_MAD) mVelX = RandRangeFloat(1.89f, 1.91f);
     }
     else
     {
@@ -1761,6 +1776,16 @@ void Zombie::UpdateZombieFlyer()
 
 void Zombie::UpdateZombieNewspaper()
 {
+    if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_MINERPAPER && ((mIsEating && mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING) || (mApp->IsWallnutBowlingLevel() && mBoard->PixelToGridXKeepOnBoard(mPosX + 40, mPosY) < 4 && mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING)))
+    {
+        mZombieRect = Rect(36, 0, 42, 115);
+        RiseFromGrave(mBoard->PixelToGridXKeepOnBoard(mPosX + 80.0f, mPosY), mRow);
+        mZombieAttackRect = Rect(20, 0, 50, 115);
+        mApp->PlayFoley(FoleyType::FOLEY_DIRT_RISE);
+        mApp->PlayFoley(FoleyType::FOLEY_WAKEUP);
+        AttachmentDetachCrossFadeParticleType(mAttachmentID, ParticleEffect::PARTICLE_DIGGER_TUNNEL, nullptr);
+        mSummonCounter = 1;
+    }
     if (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_MADDENING)
     {
         Reanimation* aBodyReanim = mApp->ReanimationGet(mBodyReanimID);
@@ -1773,6 +1798,7 @@ void Zombie::UpdateZombieNewspaper()
             }
 
             StartWalkAnim(20);
+            mEatPower = 2;
             aBodyReanim->SetImageOverride("anim_head1", IMAGE_REANIM_ZOMBIE_PAPER_MADHEAD);
         }
     }
@@ -3253,6 +3279,10 @@ void Zombie::UpdateZombieRiseFromGrave()
     if (mPhaseCounter == 0)
     {
         mZombiePhase = ZombiePhase::PHASE_ZOMBIE_NORMAL;
+        if (mZombieType == ZombieType::ZOMBIE_NEWSPAPER)
+        {
+            mZombiePhase = ZombiePhase::PHASE_NEWSPAPER_READING;
+        }
 
         if (IsOnHighGround())
         {
@@ -3566,6 +3596,11 @@ void Zombie::OverrideParticleColor(TodParticleSystem* aParticle)
         else if (mPoisonedCounter > 0)
         {
             aParticle->OverrideColor(nullptr, Color(27, 214, 2, 255));
+            aParticle->OverrideExtraAdditiveDraw(nullptr, true);
+        }
+        else if (mSunBeaned)
+        {
+            aParticle->OverrideColor(nullptr, Color(250, 229, 0, 255));
             aParticle->OverrideExtraAdditiveDraw(nullptr, true);
         }
     }
@@ -4752,37 +4787,39 @@ void Zombie::UpdateActions()
             int aChoice = 0;
             if (mBoard && mBoard->mLevel == 3)
             {
-                if (mRow == 1)
-                {
-                    aChoice = 1;
-                }
-                else if (mRow >= 3)
-                {
-                    aChoice = -1;
-                }
+                if (mRow == 1) SetRow(2);
+                else if (mRow == 3) SetRow(2);
                 else
                 {
-                    aChoice = RandRangeInt(-1, 1);
+                    aChoice = RandRangeInt(0, 1);
+                    if (aChoice == 1) SetRow(mRow - 1);
+                    else SetRow(mRow + 1);
                 }
             }
             else
             {
-                if (mRow == 0)
+                if (!mBoard->StageHasPool())
                 {
-                    aChoice = 1;
-                }
-                else if (mRow >= 4)
-                {
-                    aChoice = -1;
+                    if (mRow == 0) SetRow(1);
+                    else if (mRow == 4) SetRow(3);
+                    else
+                    {
+                        aChoice = RandRangeInt(0, 1);
+                        if (aChoice == 1) SetRow(mRow - 1);
+                        else SetRow(mRow + 1);
+                    }
                 }
                 else
                 {
-                    aChoice = RandRangeInt(-1, 1);
+                    if (mRow == 0) SetRow(1);
+                    else if (mRow == 1) SetRow(0);
+                    else if (mRow == 2) SetRow(3);
+                    else if (mRow == 3) SetRow(2);
+                    else if (mRow == 4) SetRow(5);
+                    else if (mRow == 5) SetRow(4);
                 }
             }
             mPhaseCounter = 400;
-            mRow = ClampInt(mRow + aChoice, 0, 5);
-            mRenderOrder = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_ZOMBIE, mRow, 4);
         }
     }
     if (mZombieType == ZombieType::ZOMBIE_FLAG)
@@ -4790,7 +4827,7 @@ void Zombie::UpdateActions()
         Zombie* aZombie = nullptr;
         while (mBoard->IterateZombies(aZombie))
         {
-            if (!aZombie->mDead && !aZombie->mMindControlled && aZombie->mZombieType != ZombieType::ZOMBIE_FLAG && aZombie->mBodyHealth > 50)
+            if (!aZombie->mDead && (!mMindControlled ? !aZombie->mMindControlled : aZombie->mMindControlled) && aZombie->mZombieType != ZombieType::ZOMBIE_FLAG && aZombie->mBodyHealth > 50)
             {
                 if (aZombie->mZombieAge % 2 == 0)
                 {
@@ -5364,6 +5401,13 @@ void Zombie::AnimateChewSound()
                 mApp->GetAchievement(AchievementType::ACHIEVEMENT_DISCO_IS_UNDEAD);
             }
         }
+        else if (aPlant->mVariantType == PlantVariant::SEED_VARIANT_INFECTSHROOM && !aPlant->mIsAsleep)
+        {
+            mApp->PlayFoley(FoleyType::FOLEY_FLOOP);
+            aPlant->Die();
+
+            mSunBeaned = true;
+        }
         else if (aPlant->mSeedType == SeedType::SEED_GARLIC)
         {
             if (!mYuckyFace)
@@ -5713,6 +5757,16 @@ void Zombie::DrawZombiePart(Graphics* g, Image* theImage, int theFrame, int theR
     {
         g->SetColorizeImages(true);
         g->SetColor(Color(27, 214, 2, anAlpha));
+        g->DrawImageMirror(theImage, aDestRect, aSrcRect, aMirror);
+
+        g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
+        g->DrawImageMirror(theImage, aDestRect, aSrcRect, aMirror);
+        g->SetDrawMode(Graphics::DRAWMODE_NORMAL);
+    }
+    else if (mSunBeaned)
+    {
+        g->SetColorizeImages(true);
+        g->SetColor(Color(250, 229, 0, anAlpha));
         g->DrawImageMirror(theImage, aDestRect, aSrcRect, aMirror);
 
         g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
@@ -6230,6 +6284,29 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
     }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_STARPAPER)
+    {
+        aColorOverride = Color(237, 177, 12, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_MINERPAPER)
+    {
+        if (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING && mSummonCounter == 0)
+        {
+            aColorOverride = Color(52, 235, 216, 0);
+            aExtraAdditiveColor = aColorOverride;
+            aEnableExtraAdditiveDraw = true;
+            mApp->ReanimationGet(mBodyReanimID)->GetTrackInstanceByName("Zombie_paper_paper")->mImageOverride = Sexy::IMAGE_BLANK;
+        }
+        else
+        {
+            aColorOverride = Color(52, 235, 216, aFadeAlpha);
+            aExtraAdditiveColor = aColorOverride;
+            aEnableExtraAdditiveDraw = true;
+            mApp->ReanimationGet(mBodyReanimID)->GetTrackInstanceByName("Zombie_paper_paper")->mImageOverride = Sexy::IMAGE_REANIM_ZOMBIE_PAPER_PAPER2;
+        }
+    }
     else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_DEFENDER)
     {
         aColorOverride = Color(252, 186, 3, aFadeAlpha);
@@ -6306,6 +6383,12 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     else if (mBucketBoosted)
     {
         aColorOverride = Color(242, 19, 15, aFadeAlpha);
+    }
+    else if (mSunBeaned)
+    {
+        aColorOverride = Color(250, 229, 0, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
     }
     if (mJustGotShotCounter > 0 && !IsBobsledTeamWithSled())
     {
@@ -7291,6 +7374,17 @@ void Zombie::StartVariant(ZombieVariant theVariant)
         UpdateAnimSpeed();
         break;
     }
+    
+    case ZombieVariant::ZOMBIE_VARIANT_MINERPAPER:
+    {
+        AddAttachedParticle(60, 100, ParticleEffect::PARTICLE_DIGGER_TUNNEL);
+        mZombieRect = Rect(58, 0, 0 ,0);
+        mZombieAttackRect = Rect(-20, 0, 50, 155);
+        mZombiePhase = ZombiePhase::PHASE_NEWSPAPER_DIGGING;
+        mVelX = 1.5f;
+        UpdateAnimSpeed();
+        break;
+    }
 
     case ZombieVariant::ZOMBIE_VARIANT_GHOST:
     {
@@ -7725,6 +7819,10 @@ void Zombie::EatPlant(Plant* thePlant)
     }
 
     StartEating();
+    if (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING)
+    {
+        return;
+    }
     if (thePlant->mSeedType == SeedType::SEED_JALAPENO || 
         thePlant->mSeedType == SeedType::SEED_CHERRYBOMB || 
         thePlant->mSeedType == SeedType::SEED_DOOMSHROOM ||
@@ -7773,10 +7871,26 @@ void Zombie::EatPlant(Plant* thePlant)
         }
     }
 
-    thePlant->mPlantHealth -= DAMAGE_PER_EAT;
-    if (mBucketBoosted)
+    thePlant->mPlantHealth -= DAMAGE_PER_EAT * ((mEatPower + (mEatPower * mBucketBoosted)) * mScaleZombie);
+    if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_STARPAPER && mZombieAge % 100 < 4)
     {
-        thePlant->mPlantHealth -= DAMAGE_PER_EAT;
+        for (int i = 0; i < 4; i++)
+        {
+            Projectile* aProjectile = mBoard->AddProjectile(mX + 25, mY + 25, mRenderOrder - 1, mRow, ProjectileType::PROJECTILE_ZOMBIE_PEA);
+            aProjectile->mDamageRangeFlags = 1;
+            aProjectile->mMotionType = ProjectileMotion::MOTION_STAR;
+            aProjectile->mImageOverride = IMAGE_PROJECTILE_STAR;
+            aProjectile->mParticleOverride = ParticleEffect::PARTICLE_STAR_SPLAT;
+            aProjectile->mPierces = true;
+
+            switch (i)
+            {
+            case 0:     aProjectile->mVelX = 3.33f;           aProjectile->mVelY = 3.33f;             break;
+            case 1:     aProjectile->mVelX = 3.33f;           aProjectile->mVelY = -3.33f;             break;
+            case 2:     aProjectile->mVelX = -3.33f;          aProjectile->mVelY = 3.33f;            break;
+            case 3:     aProjectile->mVelX = -3.33f;          aProjectile->mVelY = -3.33f;      break;
+            }
+        }
     }
     thePlant->mRecentlyEatenCountdown = 50;
     if (mApp->IsIZombieLevel() && mJustGotShotCounter < -500)
@@ -7807,7 +7921,10 @@ void Zombie::EatPlant(Plant* thePlant)
 
 void Zombie::EatZombie(Zombie* theZombie)
 {
-    theZombie->TakeDamage(DAMAGE_PER_EAT, 9U);
+    for (int i = 0; i < mEatPower + (mEatPower * mBucketBoosted); i++)
+    {
+        theZombie->TakeDamage(DAMAGE_PER_EAT, 9U);
+    }
     StartEating();
     if (theZombie->mBodyHealth <= 0)
     {
@@ -8691,11 +8808,23 @@ void Zombie::TakeBodyDamage(int theDamage, unsigned int theDamageFlags)
 
 void Zombie::TakeDamage(int theDamage, unsigned int theDamageFlags)
 {
-    if (mZombiePhase == ZombiePhase::PHASE_JACK_IN_THE_BOX_POPPING || IsDeadOrDying())
+    if (mZombiePhase == ZombiePhase::PHASE_JACK_IN_THE_BOX_POPPING || mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING || mZombiePhase == ZombiePhase::PHASE_RISING_FROM_GRAVE || IsDeadOrDying())
         return;
 
     int aDamageRemaining = theDamage;
 
+    if (mSunBeaned)
+    {
+        for (int i = 0; i < theDamage && i < mBodyHealth + mHelmHealth; i++)
+        {
+            mSunBanked += 0.075;
+        }
+    }
+    while (mSunBanked > 5 && mSunBeaned)
+    {
+        mSunBanked -= 5;
+        mBoard->AddCoin(mPosX, mPosY, CoinType::COIN_MINISUN, CoinMotion::COIN_MOTION_COIN);
+    }
     if (IsFlying())
     {
         aDamageRemaining = TakeFlyingDamage(aDamageRemaining, theDamageFlags);
@@ -8881,7 +9010,7 @@ bool Zombie::EffectedByDamage(unsigned int theDamageRangeFlags)
         return true;
     }
 
-    bool underground = mZombiePhase == ZombiePhase::PHASE_DIGGER_TUNNELING;
+    bool underground = mZombiePhase == ZombiePhase::PHASE_DIGGER_TUNNELING || (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING && mSummonCounter == 0);
     if (TestBit(theDamageRangeFlags, (int)DamageRangeFlags::DAMAGES_UNDERGROUND) && underground)
     {
         return true;
@@ -8905,8 +9034,6 @@ void Zombie::SetRow(int theRow)
 
 void Zombie::RiseFromGrave(int theCol, int theRow)
 {
-    TOD_ASSERT(mZombiePhase == ZombiePhase::PHASE_ZOMBIE_NORMAL);
-
     mPosX = mBoard->GridToPixelX(theCol, mRow) - 25;
     mPosY = GetPosYBasedOnRow(theRow);
     SetRow(theRow);
@@ -10090,6 +10217,10 @@ void Zombie::DrawShadow(Graphics* g)
     GetDrawPos(aDrawPos);
     if (mApp->mGameScene == GameScenes::SCENE_ZOMBIES_WON && !SetupDrawZombieWon(g))
         return;
+    if (mZombiePhase == ZombiePhase::PHASE_NEWSPAPER_DIGGING && mSummonCounter == 0)
+    {
+        return;
+    }
 
     int aShadowType = 0;
     float aShadowOffsetX = aDrawPos.mImageOffsetX;

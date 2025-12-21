@@ -65,7 +65,11 @@ public:
     int                     mMaxPoison;
     bool                    mSplits;
     int                     mCurseOverride;
-
+    Plant*                  mPlantLast;
+    Sexy::Image*            mImageOverride;
+    ParticleEffect          mParticleOverride;
+    int                     mFreezeOverride;
+    Color                   mColorOverride;
 
 public:
     Projectile();

@@ -32,7 +32,7 @@ PlantDefinition gPlantDefs[SeedType::NUM_SEED_TYPES] = {
     { SeedType::SEED_SNOWPEA,           nullptr, ReanimationType::REANIM_SNOWPEA,       4,  175,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("SNOW_PEA") },
     { SeedType::SEED_CHOMPER,           nullptr, ReanimationType::REANIM_CHOMPER,       31, 200,    750,    PlantSubClass::SUBCLASS_NORMAL,     0,      _S("CHOMPER") },
     { SeedType::SEED_REPEATER,          nullptr, ReanimationType::REANIM_REPEATER,      5,  225,    750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("REPEATER") },
-    { SeedType::SEED_PUFFSHROOM,        nullptr, ReanimationType::REANIM_PUFFSHROOM,    6,  0,      750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("PUFF_SHROOM") },
+    { SeedType::SEED_PUFFSHROOM,        nullptr, ReanimationType::REANIM_PUFFSHROOM,    6,  15,      750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("PUFF_SHROOM") },
     { SeedType::SEED_SUNSHROOM,         nullptr, ReanimationType::REANIM_SUNSHROOM,     7,  25,     750,    PlantSubClass::SUBCLASS_NORMAL,     2500,   _S("SUN_SHROOM") },
     { SeedType::SEED_FUMESHROOM,        nullptr, ReanimationType::REANIM_FUMESHROOM,    9,  75,     750,    PlantSubClass::SUBCLASS_SHOOTER,    150,    _S("FUME_SHROOM") },
     { SeedType::SEED_GRAVEBUSTER,       nullptr, ReanimationType::REANIM_GRAVE_BUSTER,  40, 75,     750,    PlantSubClass::SUBCLASS_NORMAL,     0,      _S("GRAVE_BUSTER") },
@@ -728,6 +728,13 @@ bool Plant::FindTargetAndFire(int theRow, PlantWeapon thePlantWeapon)
     Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
     Reanimation* aHeadReanim = mApp->ReanimationTryToGet(mHeadReanimID);
 
+    if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF)
+    {
+        if (aZombie->CanLoseBodyParts() && !aZombie->mHasHead)
+        {
+            return false;
+        }
+    }
     if (mSeedType == SeedType::SEED_SPLITPEA && thePlantWeapon == PlantWeapon::WEAPON_SECONDARY)
     {
         Reanimation* aHeadReanim2 = mApp->ReanimationGet(mHeadReanimID2);
@@ -997,6 +1004,9 @@ void Plant::UpdateProductionPlant()
     if (mBoard->HasLevelAwardDropped())
         return;
 
+    if (mVariantType == PlantVariant::SEED_VARIANT_INFECTSHROOM)
+        return;
+
     if (mSeedType == SeedType::SEED_MARIGOLD && mBoard->mCurrentWave == mBoard->mNumWaves)
     {
         if (mState != PlantState::STATE_MARIGOLD_ENDING)
@@ -1012,6 +1022,8 @@ void Plant::UpdateProductionPlant()
         return;
 
     mLaunchCounter--;
+    if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM && mBoard->mSunMoney > 400)
+        mLaunchCounter--;
     if (mLaunchCounter <= 100)
     {
         int aFlashCountdown = TodAnimateCurve(100, 0, mLaunchCounter, 0, 100, TodCurves::CURVE_LINEAR);
@@ -1045,6 +1057,9 @@ void Plant::UpdateProductionPlant()
     if (mLaunchCounter <= 0)
     {
         mLaunchCounter = RandRangeInt(mLaunchRate - 150, mLaunchRate);
+        if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM)
+            mLaunchCounter = ClampInt(mLaunchRate / (ClampFloat(mBoard->mSunMoney / 400, 0.5, 500)), 750, 4500);
+            mPlantHealth -= 40;
         mApp->PlayFoley(FoleyType::FOLEY_SPAWN_SUN);
 
         if (mSeedType == SeedType::SEED_SUNSHROOM)
@@ -3123,6 +3138,18 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(59, 205, 237);
     }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF)
+    {
+        aColorOverride = Color(59, 205, 237);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM)
+    {
+        aColorOverride = Color(126, 245, 66);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_INFECTSHROOM)
+    {
+        aColorOverride = Color(247, 0, 214);
+    }
     else if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
     {
         aColorOverride = Color(235, 73, 14);
@@ -3381,7 +3408,6 @@ void Plant::Update()
             Animate();
         }
 
-
         if (mPlantHealth < 0)
             Die();
     }
@@ -3412,7 +3438,8 @@ bool Plant::IsIcePlant(SeedType theSeedType, PlantVariant thePlantVariant)
         theSeedType == SeedType::SEED_SNOWPEA ||
         theSeedType == SeedType::SEED_ICESHROOM ||
         theSeedType == SeedType::SEED_WINTERMELON ||
-        thePlantVariant == PlantVariant::SEED_VARIANT_CRYOCHERRY;
+        thePlantVariant == PlantVariant::SEED_VARIANT_CRYOCHERRY ||
+        thePlantVariant == PlantVariant::SEED_VARIANT_FREEZEPUFF;
 }
 
 bool Plant::NotOnGround()
@@ -3750,7 +3777,7 @@ void Plant::UpdateShooting()
     if (mSeedType == SeedType::SEED_FUMESHROOM && mShootingCounter == 15)
     {
         int aRenderPosition = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_PARTICLE, mRow, 0);
-        AddAttachedParticle(mX + 85, mY + 31, aRenderPosition, ParticleEffect::PARTICLE_FUMECLOUD);
+        AddAttachedParticle(mX + 85, mY + 31, aRenderPosition, ParticleEffect::PARTICLE_FUMECLOUD)->OverrideScale(nullptr, 2.0f);
     }
 
     if (mSeedType == SeedType::SEED_GLOOMSHROOM)
@@ -4886,6 +4913,36 @@ void Plant::MouseDown(int x, int y, int theClickCount)
                 mLaunchCounter = 200;
             }
         }
+        if (mSeedType == SeedType::SEED_PUFFSHROOM)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchRate = 150;
+                mLaunchCounter = 150;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_FREEZEPUFF;
+                mLaunchRate = 70;
+                mLaunchCounter = 90;
+            }
+        }
+        if (mSeedType == SeedType::SEED_SUNSHROOM)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_INFECTSHROOM;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_INFECTSHROOM)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_BANKSHROOM;
+            }
+        }
     }
 }
 
@@ -5451,6 +5508,19 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mChillOverride = 0;
     }
 
+    if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF)
+    {
+        aProjectile->mFreezeOverride = 400;
+        aProjectile->mColorOverride = Color(59, 205, 237);
+        aProjectile->mDamageOverride = 35;
+        aProjectile->mChillOverride = 1000;
+        mPlantHealth -= 120;
+        if (mPlantHealth < 0)
+        {
+            mApp->AddTodParticle(mX + 40, mY + 40, (int)RenderLayer::RENDER_LAYER_TOP, ParticleEffect::PARTICLE_IMITATER_MORPH);
+        }
+    }
+
     if (mVariantType == PlantVariant::SEED_VARIANT_DIVIDEPEA)
     {
         aProjectile->mDamageOverride = 15;
@@ -5982,7 +6052,9 @@ Rect Plant::GetPlantAttackRect(PlantWeapon thePlantWeapon)
     case SeedType::SEED_POTATOMINE:     aRect = Rect(mX,            mY,             mWidth - 25,        mHeight);               break;
     case SeedType::SEED_TORCHWOOD:      aRect = Rect(mX + 50,       mY,             30,                 mHeight);               break;
     case SeedType::SEED_PUFFSHROOM:
-    case SeedType::SEED_SEASHROOM:      aRect = Rect(mX + 60,       mY,             230,                mHeight);               break;
+    case SeedType::SEED_SEASHROOM:      
+        if (mVariantType == PlantVariant::SEED_VARIANT_NONE) { aRect = Rect(mX + 60, mY, 230, mHeight);  break; }
+        if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF) { aRect = Rect(mX + 60, mY, 60, mHeight);  break; }
     case SeedType::SEED_FUMESHROOM:     aRect = Rect(mX + 60,       mY,             340,                mHeight);               break;
     case SeedType::SEED_GLOOMSHROOM:    aRect = Rect(mX - 80,       mY - 80,        240,                240);                   break;
     case SeedType::SEED_TANGLEKELP:     aRect = Rect(mX,            mY,             mWidth,             mHeight);               break;

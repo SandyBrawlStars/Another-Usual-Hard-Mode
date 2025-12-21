@@ -728,11 +728,18 @@ void AlmanacDialog::Draw(Graphics* g)
 		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("area in a rate of 1/0.1s."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Bite Power: "), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(237, 177, 12), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Zombies usually have a bite power of 1, those who have a specified"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("bite power have their damage multiplied by that number."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
 		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Enrage System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(156, 11, 3), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Enraged zombies walk and eat at double the speed, does"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Enraged zombies walk and eat at double the speed (doubles any extra"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
-		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("not go away."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("bite power too), does not go away."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 
 		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Adventure Expansions:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(66, 135, 245), DrawStringJustification::DS_ALIGN_LEFT);

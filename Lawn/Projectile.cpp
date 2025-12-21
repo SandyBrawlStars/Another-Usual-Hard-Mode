@@ -83,6 +83,7 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mAnimTicksPerFrame = 0;
 	mPierceLeft = 3;
 	mZombieLast = nullptr;
+	mPlantLast = nullptr;
 	mPierces = false;
 	mKnockback = 0.0f;
 	mChillOverride = -1;
@@ -91,6 +92,10 @@ void Projectile::ProjectileInitialize(int theX, int theY, int theRenderOrder, in
 	mCurseOverride = -1;
 	mMaxPoison = 10;
 	mSplits = false;
+	mImageOverride = nullptr;
+	mParticleOverride = ParticleEffect::NUM_PARTICLES;
+	mColorOverride = Color(0, 0, 0);
+	mFreezeOverride = 0;
 
 	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 	{
@@ -174,6 +179,7 @@ Plant* Projectile::FindCollisionTargetPlant()
 				aPlant->mSeedType == SeedType::SEED_POTATOMINE ||
 				aPlant->mSeedType == SeedType::SEED_SPIKEWEED ||
 				aPlant->mSeedType == SeedType::SEED_SPIKEROCK ||
+				aPlant->mSeedType == SeedType::SEED_SEASHROOM ||
 				aPlant->mSeedType == SeedType::SEED_LILYPAD)  
 				continue;
 		}
@@ -311,24 +317,56 @@ void Projectile::CheckForCollision()
 		Plant* aPlant = FindCollisionTargetPlant();
 		if (aPlant)
 		{
-			const ProjectileDefinition& aProjectileDef = GetProjectileDef();
-			aPlant->mPlantHealth -= aProjectileDef.mDamage;
-			aPlant->mEatenFlashCountdown = max(aPlant->mEatenFlashCountdown, 25);
-
-			if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
+			if (!mPierces)
 			{
-				if (aPlant->mChilledCounter == 0) mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
-				aPlant->FreezePlant(1000, 0);
-			}
-			
-			if (mCurseOverride >= 0)
-			{
-				aPlant->mCurseCounter = max(mCurseOverride, aPlant->mCurseCounter);
-			}
+				const ProjectileDefinition& aProjectileDef = GetProjectileDef();
+				aPlant->mPlantHealth -= aProjectileDef.mDamage;
+				aPlant->mEatenFlashCountdown = max(aPlant->mEatenFlashCountdown, 25);
 
-			mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
-			mApp->AddTodParticle(mPosX - 3.0f, mPosY + 17.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_PEA_SPLAT);
-			Die();
+				if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
+				{
+					if (aPlant->mChilledCounter == 0) mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
+					aPlant->FreezePlant(1000, 0);
+				}
+
+				if (mCurseOverride >= 0)
+				{
+					aPlant->mCurseCounter = max(mCurseOverride, aPlant->mCurseCounter);
+				}
+
+				mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
+				mApp->AddTodParticle(mPosX - 3.0f, mPosY + 17.0f, mRenderOrder + 1, mParticleOverride != NUM_PARTICLES ? mParticleOverride : ParticleEffect::PARTICLE_PEA_SPLAT);
+				Die();
+			}
+			else
+			{
+				if (mPlantLast != aPlant)
+				{
+					const ProjectileDefinition& aProjectileDef = GetProjectileDef();
+					aPlant->mPlantHealth -= aProjectileDef.mDamage;
+					aPlant->mEatenFlashCountdown = max(aPlant->mEatenFlashCountdown, 25);
+
+					if (mProjectileType == ProjectileType::PROJECTILE_ZOMBIE_SNOWPEA)
+					{
+						if (aPlant->mChilledCounter == 0) mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
+						aPlant->FreezePlant(1000, 0);
+					}
+
+					if (mCurseOverride >= 0)
+					{
+						aPlant->mCurseCounter = max(mCurseOverride, aPlant->mCurseCounter);
+					}
+
+					mApp->PlayFoley(FoleyType::FOLEY_SPLAT);
+					mApp->AddTodParticle(mPosX - 3.0f, mPosY + 17.0f, mRenderOrder + 1, mParticleOverride != NUM_PARTICLES ? mParticleOverride : ParticleEffect::PARTICLE_PEA_SPLAT);
+					mPlantLast = aPlant;
+					mPierceLeft--;
+				}
+				if (mPierceLeft <= 0)
+				{
+					Die();
+				}
+			}
 		}
 		return;
 	}
@@ -936,6 +974,50 @@ void Projectile::DoImpact(Zombie* theZombie)
 				theZombie->UpdateAnimSpeed();
 			}
 		}
+		if (mFreezeOverride > 0)
+		{
+			if (theZombie->CanBeChilled())
+			{
+				if (theZombie->mChilledCounter == 0 && mChillOverride > 300)
+				{
+					mApp->PlayFoley(FoleyType::FOLEY_FROZEN);
+				}
+
+				bool cold = false;
+				if (theZombie->mChilledCounter > 0 || theZombie->mIceTrapCounter != 0)
+				{
+					cold = true;
+				}
+
+				if (!theZombie->CanBeFrozen())
+					return;
+
+				if (theZombie->mInPool)
+				{
+					theZombie->mIceTrapCounter = mFreezeOverride;
+				}
+				else if (cold)
+				{
+					theZombie->mIceTrapCounter = RandRangeInt(mFreezeOverride, mFreezeOverride + 50);
+				}
+				else
+				{
+					theZombie->mIceTrapCounter = RandRangeInt(mFreezeOverride + 50, mFreezeOverride + 150);
+				}
+
+				theZombie->StopZombieSound();
+				if (theZombie->mZombieType == ZombieType::ZOMBIE_BALLOON)
+				{
+					theZombie->BalloonPropellerHatSpin(false);
+				}
+				if (theZombie->mZombiePhase == ZombiePhase::PHASE_BOSS_HEAD_SPIT)
+				{
+					theZombie->mBoard->RemoveParticleByType(ParticleEffect::PARTICLE_ZOMBIE_BOSS_FIREBALL);
+				}
+
+				theZombie->UpdateAnimSpeed();
+			}
+		}
 		if (mPoisonOverride >= 0)
 		{
 			theZombie->mPoisonedCounter = max(mPoisonOverride, theZombie->mPoisonedCounter);
@@ -1163,7 +1245,11 @@ void Projectile::Draw(Graphics* g)
 
 	Image* aImage;
 	float aScale = 1.0f;
-	if (mProjectileType == ProjectileType::PROJECTILE_COBBIG)
+	if (mImageOverride == Sexy::IMAGE_PROJECTILE_STAR)
+	{
+		aImage = IMAGE_PROJECTILE_STAR;
+	}
+	else if (mProjectileType == ProjectileType::PROJECTILE_COBBIG)
 	{
 		aImage = IMAGE_REANIM_COBCANNON_COB;
 		aScale = 0.9f;
@@ -1254,6 +1340,11 @@ void Projectile::Draw(Graphics* g)
 		aMirror = true;
 	}
 
+	if (mColorOverride != Color(0,0,0))
+	{
+		g->SetColorizeImages(true);
+		g->SetColor(mColorOverride);
+	}
 	if (mProjectileType == ProjectileType::PROJECTILE_ELECTRO_PEA)
 	{
 		g->SetColorizeImages(true);

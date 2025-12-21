@@ -26,6 +26,9 @@ CoinDefinition gCoinDefs[NUM_COIN_TYPES] = {
     {COIN_SMALLSUN,  _S("SMALL_SUN")},
     {COIN_LARGESUN,  _S("LARGE_SUN")},
     {COIN_ANTISUN,  _S("ANTI_SUN")},
+    {COIN_MINISUN,  _S("MINI_SUN")},
+    {COIN_MEGASUN,  _S("MEGA_SUN")},
+    {COIN_SMALLANTISUN,  _S("SMALL_ANTI_SUN")},
     {COIN_FINAL_SEED_PACKET,  _S("SEED_PACKET")},
     {COIN_TROPHY,  _S("TROPHY")},
     {COIN_SHOVEL,  _S("SHOVEL")},
@@ -410,11 +413,23 @@ void Coin::CoinInitialize(int theX, int theY, CoinType theCoinType, CoinMotion t
     float aScale;
     if (mType == CoinType::COIN_SMALLSUN)
     {
-        aScale = 0.5f;
+        aScale = 0.6f;
     }
     else if (mType == CoinType::COIN_LARGESUN)
     {
-        aScale = 2.0f;
+        aScale = 1.9f;
+    }
+    else if (mType == CoinType::COIN_SMALLANTISUN)
+    {
+        aScale = 0.6f;
+    }
+    else if (mType == CoinType::COIN_MINISUN)
+    {
+        aScale = 0.3f;
+    }
+    else if (mType == CoinType::COIN_MEGASUN)
+    {
+        aScale = 2.3f;
     }
     else
     {
@@ -445,7 +460,7 @@ bool Coin::IsMoney()
 
 bool Coin::IsSun()
 {
-    return mType == CoinType::COIN_SUN || mType == CoinType::COIN_ANTISUN || mType == CoinType::COIN_SMALLSUN || mType == CoinType::COIN_LARGESUN;
+    return mType == CoinType::COIN_SUN || mType == CoinType::COIN_ANTISUN || mType == CoinType::COIN_SMALLSUN || mType == CoinType::COIN_LARGESUN || mType == CoinType::COIN_SMALLANTISUN || mType == CoinType::COIN_MINISUN || mType == CoinType::COIN_MEGASUN;
 }
 
 bool Coin::IsPresentWithAdvice()
@@ -859,7 +874,7 @@ void Coin::Draw(Graphics* g)
 
     if (mAttachmentID != AttachmentID::ATTACHMENTID_NULL)
     {
-        if (mType == CoinType::COIN_ANTISUN)
+        if (mType == CoinType::COIN_ANTISUN || mType == CoinType::COIN_SMALLANTISUN)
         {
             g->SetColorizeImages(true);
             g->SetColor(Color(242, 44, 44));
@@ -1339,12 +1354,12 @@ void Coin::Collect()
 
 float Coin::GetSunScale()
 {
-    return mType == CoinType::COIN_SMALLSUN ? 0.5f : mType == CoinType::COIN_LARGESUN ? 2.0f : 1.0f;
+    return mType == CoinType::COIN_SMALLSUN ? 0.6f : mType == CoinType::COIN_LARGESUN ? 1.9f : mType == CoinType::COIN_MEGASUN ? 2.3f : mType == CoinType::COIN_MINISUN ? 0.3f : mType == CoinType::COIN_SMALLANTISUN ? 0.6f : 1.0f;
 }
 
 int Coin::GetSunValue()
 {
-    return mType == CoinType::COIN_SUN ? 25 : mType == CoinType::COIN_SMALLSUN ? 15 : mType == CoinType::COIN_LARGESUN ? 50 : mType == CoinType::COIN_ANTISUN ? -25 : 0;
+    return mType == CoinType::COIN_SUN ? 25 : mType == CoinType::COIN_SMALLSUN ? 15 : mType == CoinType::COIN_LARGESUN ? 50 : mType == CoinType::COIN_ANTISUN ? -25 : mType == CoinType::COIN_SMALLANTISUN ? -15 : mType == CoinType::COIN_MINISUN ? 5 : mType == CoinType::COIN_MEGASUN ? 75 : 0;
 }
 
 int Coin::GetCoinValue(CoinType theCoinType)

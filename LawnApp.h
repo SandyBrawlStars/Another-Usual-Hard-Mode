@@ -76,7 +76,8 @@ public:
 	std::string						mRegisterLink;									
 	std::string						mMod;											
 	bool							mRegisterResourcesLoaded;						
-	bool							mTodCheatKeys;									
+	bool							mTodCheatKeys;		
+	bool					        mExtraBars;
 	GameMode						mGameMode;										
 	GameScenes						mGameScene;										
 	bool							mLoadingZombiesThreadCompleted;					
