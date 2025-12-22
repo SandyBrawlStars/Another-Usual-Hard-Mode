@@ -656,6 +656,10 @@ void SeedPacket::Draw(Graphics* g)
 
 		DrawSeedPacket(g, mOffsetX, 0.0f, mPacketType, mImitaterType, aPercentDark, aGrayness, aDrawCost, true);
 	}
+	if (mRefreshCounter > 0 && mApp->mExtraBars)
+	{
+		mBoard->DrawHealthbarMiniFloat(g, Rect(25, 40, 0, 0), Color(255, 0, 0, 200), mRefreshTime / 100.0, Color(0, 255, 0, 200), (mRefreshTime - mRefreshCounter) / 100.0, 40, 10, 0, 0, Color(255, 255, 255, 200), FONT_BRIANNETOD12, 3, Color(0, 0, 0, 200), 1, true);
+	}
 }
 
 bool SeedPacket::CanPickUp()

@@ -4988,7 +4988,7 @@ void Board::SpawnZombieWave()
 					AddZombie(ZombieType::ZOMBIE_NORMAL, mCurrentWave);  
 				}
 			}
-			else if (aZombieType == ZombieType::ZOMBIE_NORMAL && (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS))
+			else if (aZombieType == ZombieType::ZOMBIE_NORMAL && (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_2))
 			{
 				AddZombie(ZombieType::ZOMBIE_PEA_HEAD, mCurrentWave);
 			}
@@ -6604,43 +6604,25 @@ void Board::DrawGameObjects(Graphics* g)
 			Color maxColor = Color(255, 0, 0);
 			Color textColor = Color::White;
 			bool drawBarOutline = true;
-			if (!mApp->mExtraBars)
+			textColor = Color(255,255,255, 200);
+			maxColor.mAlpha = 200;
+			if (aZombie->mBodyHealth > 0)
 			{
-				if (aZombie->mBodyHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY;
-					DrawHealthbar(g, rect, maxColor, aZombie->mBodyMaxHealth, Color(255, 255, 0), aZombie->mBodyHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color::Black, textOutlineOffset, drawBarOutline);
-				}
-				if (aZombie->mHelmHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY + barHeight + textOffsetY + baseTextOffsetY;
-					DrawHealthbar(g, rect, maxColor, aZombie->mHelmMaxHealth, Color(0, 0, 255), aZombie->mHelmHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color::Black, textOutlineOffset, drawBarOutline);
-				}
-				if (aZombie->mShieldHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY + barHeight + textOffsetY + baseTextOffsetY;
-					DrawHealthbar(g, rect, maxColor, aZombie->mShieldMaxHealth, Color(0, 255, 255), aZombie->mShieldHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color::Black, textOutlineOffset, drawBarOutline);
-				}
+				barOffsetY += baseBarOffsetY;
+				DrawHealthbarMini(g, rect, maxColor, aZombie->mBodyMaxHealth, Color(255, 255, 0, 200), aZombie->mBodyHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0 ,200), textOutlineOffset, drawBarOutline);
 			}
-			else
+			if (aZombie->mHelmHealth > 0)
 			{
-				textColor = Color(255,255,255, 200);
-				maxColor.mAlpha = 200;
-				if (aZombie->mBodyHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY;
-					DrawHealthbarMini(g, rect, maxColor, aZombie->mBodyMaxHealth, Color(255, 255, 0, 200), aZombie->mBodyHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0 ,200), textOutlineOffset, drawBarOutline);
-				}
-				if (aZombie->mHelmHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY + barHeight;
-					DrawHealthbarMini(g, rect, maxColor, aZombie->mHelmMaxHealth, Color(0, 160, 255, 200), aZombie->mHelmHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
-				}
-				if (aZombie->mShieldHealth > 0)
-				{
-					barOffsetY += baseBarOffsetY + barHeight;
-					DrawHealthbarMini(g, rect, maxColor, aZombie->mShieldMaxHealth, Color(0, 255, 255, 200), aZombie->mShieldHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
-				}
+				barOffsetY += baseBarOffsetY + barHeight;
+				DrawHealthbarMini(g, rect, maxColor, aZombie->mHelmMaxHealth, Color(0, 160, 255, 200), aZombie->mHelmHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
+			}
+			if (aZombie->mShieldHealth > 0)
+			{
+				barOffsetY += baseBarOffsetY + barHeight;
+				DrawHealthbarMini(g, rect, maxColor, aZombie->mShieldMaxHealth, Color(0, 255, 255, 200), aZombie->mShieldHealth, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
+			}
+			if (mApp->mExtraBars)
+			{
 				if (aZombie->mIceTrapCounter > 0)
 				{
 					barOffsetY += baseBarOffsetY + barHeight;
@@ -6673,10 +6655,10 @@ void Board::DrawGameObjects(Graphics* g)
 				case ZOMBIE_JALAPENO_HEAD: zombieMaxCounter = 4000;  zombieCounter = aZombie->mPhaseCounter; break;
 				case ZOMBIE_GATLING_HEAD: zombieMaxCounter = 150;  zombieCounter = aZombie->mPhaseCounter; break;
 				}
-				if (zombieMaxCounter > -1)
+				if (zombieMaxCounter > -1 && zombieCounter > 0 && aZombie->IsOnBoard() && aZombie->mZombiePhase != ZombiePhase::PHASE_ZOMBIE_BURNED)
 				{
 					barOffsetY += baseBarOffsetY + barHeight;
-					DrawHealthbarMini(g, rect, maxColor, zombieMaxCounter, Color(90, 90, 255, 200), ClampInt(zombieCounter, 0, 99999), barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
+					DrawHealthbarMini(g, rect, maxColor, zombieMaxCounter, Color(142, 63, 252, 200), ClampInt(zombieCounter, 0, 99999), barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
 				}
 			}
 			break;
@@ -6725,27 +6707,65 @@ void Board::DrawGameObjects(Graphics* g)
 			}
 			Color textColor = Color::White;
 			bool drawBarOutline = true;
-			if (!mApp->mExtraBars)
+			textColor = Color(255,255,255,200);
+			baseColor.mAlpha = 200;
+			maxColor.mAlpha = 200;
+			int plantMaxCounter = -1;
+			int plantCounter = -1;
+			if (aPlant->mSubclass == SUBCLASS_SHOOTER || aPlant->MakesSun() || aPlant->mSeedType == SEED_MARIGOLD)
 			{
-				if (aPlant->mPlantHealth > 0)
+				plantMaxCounter = aPlant->mLaunchRate; plantCounter = aPlant->mLaunchCounter;
+			}
+			switch (aPlant->mSeedType)
+			{
+			case SEED_CHERRYBOMB: plantMaxCounter = 100; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_POTATOMINE: plantMaxCounter = 1500; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_CHOMPER:
+			{
+				if (aPlant->mVariantType == PlantVariant::SEED_VARIANT_NONE)
 				{
-					barOffsetY += baseBarOffsetY;
-					if (isPumpkin)
-						barOffsetY += barHeight + textOffsetY + baseTextOffsetY;
-					DrawHealthbar(g, rect, maxColor, aPlant->mPlantMaxHealth, baseColor, aPlant->mPlantHealth, barWidth, barHeight, (aPlant->mSeedType != SeedType::SEED_IMITATER && isPumpkin) || aPlant->mSeedType == SeedType::SEED_TALLNUT ? 10 : 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color::Black, textOutlineOffset, drawBarOutline);
+					plantMaxCounter = 2700; plantCounter = aPlant->mStateCountdown;	break;
 				}
 			}
-			else
+			case SEED_GRAVEBUSTER: plantMaxCounter = 400; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_ICESHROOM: plantMaxCounter = 100; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_DOOMSHROOM: plantMaxCounter = 100; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_SQUASH: plantMaxCounter = 80; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_TANGLEKELP: plantMaxCounter = 100; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_JALAPENO: plantMaxCounter = 100; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_SPIKEWEED: plantMaxCounter = 100; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_BLOVER: plantMaxCounter = 50; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_MAGNETSHROOM: plantMaxCounter = 1500; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_INSTANT_COFFEE: plantMaxCounter = 100; plantCounter = aPlant->mDoSpecialCountdown;  break;
+			case SEED_SPIKEROCK: plantMaxCounter = 100; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_GOLD_MAGNET: plantMaxCounter = 300; plantCounter = aPlant->mStateCountdown;  break;
+			case SEED_COBCANNON: plantMaxCounter = 3000; plantCounter = aPlant->mStateCountdown;  break;
+			}
+			if (aPlant->mPlantHealth > -1)
 			{
-				textColor = Color(255,255,255,200);
-				baseColor.mAlpha = 200;
-				maxColor.mAlpha = 200;
-				if (aPlant->mPlantHealth > -1)
+				barOffsetY += baseBarOffsetY;
+				if (isPumpkin)
 				{
-					barOffsetY += baseBarOffsetY;
-					if (isPumpkin)
-						barOffsetY += barHeight;
-					DrawHealthbarMini(g, rect, maxColor, aPlant->mPlantMaxHealth, baseColor, aPlant->mPlantHealth, barWidth, barHeight, (aPlant->mSeedType != SeedType::SEED_IMITATER && isPumpkin) || aPlant->mSeedType == SeedType::SEED_TALLNUT ? 10 : 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0,0,0,200), textOutlineOffset, drawBarOutline);
+					barOffsetY += barHeight + baseBarOffsetY;
+				}
+				DrawHealthbarMini(g, rect, maxColor, aPlant->mPlantMaxHealth, baseColor, aPlant->mPlantHealth, barWidth, barHeight, (aPlant->mSeedType != SeedType::SEED_IMITATER && isPumpkin) || aPlant->mSeedType == SeedType::SEED_TALLNUT ? 10 : 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0,0,0,200), textOutlineOffset, drawBarOutline);
+			}
+			if (mApp->mExtraBars)
+			{
+				if (aPlant->mIceTrapCounter > 0)
+				{
+					barOffsetY += baseBarOffsetY + barHeight;
+					DrawHealthbarMini(g, rect, maxColor, 500, Color(75, 75, 255, 200), aPlant->mIceTrapCounter, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
+				}
+				else if (aPlant->mChilledCounter > 0)
+				{
+					barOffsetY += baseBarOffsetY + barHeight;
+					DrawHealthbarMini(g, rect, maxColor, 1000, Color(90, 90, 255, 200), aPlant->mChilledCounter, barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
+				}
+				if (plantMaxCounter > -1 && plantCounter > 0)
+				{
+					barOffsetY += baseBarOffsetY + barHeight;
+					DrawHealthbarMini(g, rect, maxColor, plantMaxCounter, Color(142, 63, 252, 200), ClampInt(plantCounter, 0, 99999), barWidth, barHeight, 0, barOffsetY, textColor, FONT_BRIANNETOD12, textOffsetY, Color(0, 0, 0, 200), textOutlineOffset, drawBarOutline);
 				}
 			}
 			break;
@@ -10378,6 +10398,31 @@ void Board::DrawHealthbarMini(Graphics* g, Rect rect, Color maxColor, int maxNum
 	TodDrawString(g, text, barX + (barWidth / 2) + textOutlineOffset, barY + textOutlineOffset + 10, textFont, textOutlineColor, DS_ALIGN_CENTER);
 	TodDrawString(g, text, barX + (barWidth / 2), barY + 10, textFont, textColor, DS_ALIGN_CENTER);
 }
+
+
+void Board::DrawHealthbarMiniFloat(Graphics* g, Rect rect, Color maxColor, float maxNumber, Color baseColor, float baseNumber, int barWidth, int barHeight, int barOffsetX, int barOffsetY, Color textColor, Font* textFont, int textOffsetY, Color textOutlineColor, int textOutlineOffset, bool drawBarOutline)
+{
+	int barX = rect.mX + (rect.mWidth - barWidth) / 2 - barOffsetX;
+	int barY = rect.mY - barHeight - barOffsetY;
+	int basePercentage = baseNumber * 100 / maxNumber;
+	int baseBarWidth = barWidth * basePercentage / 100;
+	Color lastColor = g->mColor;
+	g->SetColor(maxColor);
+	g->FillRect(Rect(barX + baseBarWidth, barY, barWidth - baseBarWidth, barHeight));
+	g->SetColor(baseColor);
+	g->FillRect(Rect(barX, barY, baseBarWidth, barHeight));
+	if (drawBarOutline)
+	{
+		g->SetColor(Color::Black);
+		g->DrawRect(Rect(barX - 1, barY - 1, barWidth + 1, barHeight + 1));
+	}
+	g->SetColor(lastColor);
+	SexyString text = StrFormat(_S("%.2f"), baseNumber);
+	TodDrawString(g, text, barX + (barWidth / 2) + textOutlineOffset, barY + textOutlineOffset + 10, textFont, textOutlineColor, DS_ALIGN_CENTER);
+	TodDrawString(g, text, barX + (barWidth / 2), barY + 10, textFont, textColor, DS_ALIGN_CENTER);
+}
+
+
 
 
 

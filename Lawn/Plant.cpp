@@ -1058,8 +1058,11 @@ void Plant::UpdateProductionPlant()
     {
         mLaunchCounter = RandRangeInt(mLaunchRate - 150, mLaunchRate);
         if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM)
-            mLaunchCounter = ClampInt(mLaunchRate / (ClampFloat(mBoard->mSunMoney / 400, 0.5, 500)), 750, 4500);
+        {
+            mLaunchRate = ClampInt(mLaunchRate / (ClampFloat(mBoard->mSunMoney / 400, 0.5, 500)), 750, 4500);
+            mLaunchCounter = mLaunchRate;
             mPlantHealth -= 40;
+        }  
         mApp->PlayFoley(FoleyType::FOLEY_SPAWN_SUN);
 
         if (mSeedType == SeedType::SEED_SUNSHROOM)
