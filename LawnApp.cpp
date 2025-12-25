@@ -155,7 +155,7 @@ LawnApp::LawnApp()
 	mProfileMgr = new ProfileMgr();
 	mRegisterResourcesLoaded = false;
 	mTodCheatKeys = false;
-	mExtraBars = true;
+	mExtraBars = false;
 	mCrazyDaveReanimID = ReanimationID::REANIMATIONID_NULL;
 	mCrazyDaveState = CrazyDaveState::CRAZY_DAVE_OFF;
 	mCrazyDaveBlinkCounter = 0;

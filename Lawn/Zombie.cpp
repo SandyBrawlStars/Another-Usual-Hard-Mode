@@ -5245,6 +5245,9 @@ bool Zombie::HasYuckyFaceImage()
     if (mBoard->mFutureMode)
         return false;
 
+    if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_GARLIC)
+        return false;
+
     return 
         mZombieType == ZombieType::ZOMBIE_NORMAL || 
         mZombieType == ZombieType::ZOMBIE_TRAFFIC_CONE || 

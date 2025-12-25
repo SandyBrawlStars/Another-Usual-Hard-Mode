@@ -658,7 +658,9 @@ void SeedPacket::Draw(Graphics* g)
 	}
 	if (mRefreshCounter > 0 && mApp->mExtraBars)
 	{
-		mBoard->DrawHealthbarMiniFloat(g, Rect(25, 40, 0, 0), Color(255, 0, 0, 200), mRefreshTime / 100.0, Color(0, 255, 0, 200), (mRefreshTime - mRefreshCounter) / 100.0, 40, 10, 0, 0, Color(255, 255, 255, 200), FONT_BRIANNETOD12, 3, Color(0, 0, 0, 200), 1, true);
+		SexyString text = StrFormat(_S("%.2f"), (mRefreshTime - mRefreshCounter) / 100.0);
+		TodDrawString(g, text, 6 + (40 / 2) + 1, 30 + 1 + 10, FONT_BRIANNETOD12, Color::Black, DS_ALIGN_CENTER);
+		TodDrawString(g, text, 6 + (40 / 2), 30 + 10, FONT_BRIANNETOD12, Color::White, DS_ALIGN_CENTER);
 	}
 }
 

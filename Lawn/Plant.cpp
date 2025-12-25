@@ -720,6 +720,31 @@ TodParticleSystem* Plant::AddAttachedParticle(int thePosX, int thePosY, int theR
 
 bool Plant::FindTargetAndFire(int theRow, PlantWeapon thePlantWeapon)
 {
+    if (mVariantType == PlantVariant::SEED_VARIANT_BUFFSHROOM)
+    {
+        Fire(nullptr, theRow, thePlantWeapon);
+        PlayBodyReanim("anim_shooting", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 35.0f);
+        mShootingCounter = 50;
+        return false;
+    }
+    if (mVariantType == PlantVariant::SEED_VARIANT_RICOSHETSHROOM)
+    {
+        Zombie* aZombie = nullptr;
+        for (int i = 0; i < 6; i++)
+        {
+            aZombie = FindTargetZombie(i, thePlantWeapon);
+            if (aZombie != nullptr) break;
+        }
+        if (aZombie != nullptr)
+        {
+            Fire(nullptr, theRow, thePlantWeapon);
+            PlayBodyReanim("anim_shooting", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 35.0f);
+            mLaunchCounter = mLaunchRate;
+            mShootingCounter = 50;
+            return false;
+        }
+        return false;
+    }
     Zombie* aZombie = FindTargetZombie(theRow, thePlantWeapon);
     if (aZombie == nullptr)
         return false;
@@ -940,6 +965,17 @@ void Plant::StarFruitFire()
 void Plant::UpdateShooter()
 {
     mLaunchCounter--;
+    if (mVariantType == PlantVariant::SEED_VARIANT_BUFFSHROOM && mApp->ParticleTryToGet(mParticleID))
+    {
+        Plant* aPlant = nullptr;
+        while (mBoard->IteratePlants(aPlant))
+        {
+            if (mPlantAge % 2 == 0 && aPlant != this && aPlant->mRow == mRow && aPlant->mPlantCol > mPlantCol && aPlant->mPlantCol <= mPlantCol + 4)
+            {
+                aPlant->Update();
+            }
+        }
+    }
     if (mLaunchCounter <= 0)
     {
         mLaunchCounter = mLaunchRate - Sexy::Rand(15);
@@ -3153,6 +3189,14 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(247, 0, 214);
     }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_BUFFSHROOM)
+    {
+        aColorOverride = Color(237, 155, 14);
+    }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_RICOSHETSHROOM)
+    {
+        aColorOverride = Color(50, 168, 82);
+    }
     else if (mVariantType == PlantVariant::SEED_VARIANT_SUNBLASTER)
     {
         aColorOverride = Color(235, 73, 14);
@@ -3777,10 +3821,14 @@ void Plant::UpdateShooting()
 
     mShootingCounter--;
 
-    if (mSeedType == SeedType::SEED_FUMESHROOM && mShootingCounter == 15)
+    if (mSeedType == SeedType::SEED_FUMESHROOM && mShootingCounter == 15 && mVariantType != SEED_VARIANT_RICOSHETSHROOM)
     {
         int aRenderPosition = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_PARTICLE, mRow, 0);
-        AddAttachedParticle(mX + 85, mY + 31, aRenderPosition, ParticleEffect::PARTICLE_FUMECLOUD)->OverrideScale(nullptr, 2.0f);
+        TodParticleSystem* aParticle = AddAttachedParticle(mX + 85, mY + 31, aRenderPosition, ParticleEffect::PARTICLE_FUMECLOUD);
+        if (mVariantType == SEED_VARIANT_BUFFSHROOM) {
+            aParticle->OverrideExtraAdditiveDraw(nullptr, true);
+            aParticle->OverrideColor(nullptr, Color(242, 179, 7));
+        }
     }
 
     if (mSeedType == SeedType::SEED_GLOOMSHROOM)
@@ -4946,6 +4994,27 @@ void Plant::MouseDown(int x, int y, int theClickCount)
                 mVariantType = PlantVariant::SEED_VARIANT_BANKSHROOM;
             }
         }
+        if (mSeedType == SeedType::SEED_FUMESHROOM)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_BUFFSHROOM;
+                mLaunchRate = 250;
+                mLaunchCounter = 250;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_BUFFSHROOM)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_RICOSHETSHROOM;
+                mLaunchRate = 200;
+                mLaunchCounter = 200;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_RICOSHETSHROOM)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
+                mLaunchRate = 150;
+                mLaunchCounter = 150;
+            }
+        }
     }
 }
 
@@ -5291,8 +5360,37 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
 {
     if (mSeedType == SeedType::SEED_FUMESHROOM)
     {
-        DoRowAreaDamage(20, 2U);
-        mApp->PlayFoley(FoleyType::FOLEY_FUME);
+        if (mVariantType == PlantVariant::SEED_VARIANT_BUFFSHROOM)
+        {
+            DoRowAreaDamage(0, 2U);
+            mApp->PlayFoley(FoleyType::FOLEY_FUME);
+        }
+        else
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                DoRowAreaDamage(20, 2U);
+                mApp->PlayFoley(FoleyType::FOLEY_FUME);
+            }
+            else
+            {
+                mShotsCounter++;
+                if (mShotsCounter % 2 == 1)
+                {
+                    mApp->PlayFoley(FoleyType::FOLEY_FUME);
+                    int aOriginX = mX + 52;
+                    int aOriginY = mY + 10;
+                    Projectile* aProjectile = mBoard->AddProjectile(aOriginX, aOriginY, mRenderOrder - 1, theRow, PROJECTILE_PUFF);
+                    aProjectile->mDamageRangeFlags = 1;
+                    aProjectile->mMotionType = MOTION_BOUNCE; aProjectile->mVelX = 3.33f; aProjectile->mVelY = 3.33;
+                    aProjectile->mDamageOverride = 7;
+                    Projectile* aProjectile2 = mBoard->AddProjectile(aOriginX, aOriginY, mRenderOrder - 1, theRow, PROJECTILE_PUFF);
+                    aProjectile2->mDamageRangeFlags = 1;
+                    aProjectile2->mMotionType = MOTION_BOUNCE; aProjectile2->mVelX = 3.33f; aProjectile2->mVelY = -3.33;
+                    aProjectile2->mDamageOverride = 7;
+                }
+            }
+        }
         return;
     }
     if (mSeedType == SeedType::SEED_GLOOMSHROOM)
@@ -5509,6 +5607,7 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mMaxPoison = 10;
         aProjectile->mDamageOverride = 15;
         aProjectile->mChillOverride = 0;
+        aProjectile->mColorOverride = Color(46, 255, 46);
     }
 
     if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF)
@@ -6058,7 +6157,8 @@ Rect Plant::GetPlantAttackRect(PlantWeapon thePlantWeapon)
     case SeedType::SEED_SEASHROOM:      
         if (mVariantType == PlantVariant::SEED_VARIANT_NONE) { aRect = Rect(mX + 60, mY, 230, mHeight);  break; }
         if (mVariantType == PlantVariant::SEED_VARIANT_FREEZEPUFF) { aRect = Rect(mX + 60, mY, 60, mHeight);  break; }
-    case SeedType::SEED_FUMESHROOM:     aRect = Rect(mX + 60,       mY,             340,                mHeight);               break;
+    case SeedType::SEED_FUMESHROOM:             if (mVariantType == PlantVariant::SEED_VARIANT_NONE) { aRect = Rect(mX + 60, mY, 340, mHeight);  break; }
+                                                if (mVariantType == PlantVariant::SEED_VARIANT_RICOSHETSHROOM) { aRect = Rect(LAWN_XMIN, mY, BOARD_WIDTH, mHeight);  break; }
     case SeedType::SEED_GLOOMSHROOM:    aRect = Rect(mX - 80,       mY - 80,        240,                240);                   break;
     case SeedType::SEED_TANGLEKELP:     aRect = Rect(mX,            mY,             mWidth,             mHeight);               break;
     case SeedType::SEED_CATTAIL:        aRect = Rect(-BOARD_WIDTH,  -BOARD_HEIGHT,  BOARD_WIDTH * 2,    BOARD_HEIGHT * 2);      break;

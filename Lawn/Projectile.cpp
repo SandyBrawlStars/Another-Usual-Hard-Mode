@@ -469,7 +469,11 @@ unsigned int Projectile::GetDamageFlags(Zombie* theZombie)
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
 	}
-	else if (mMotionType == ProjectileMotion::MOTION_STAR && mVelX < 0.0f)
+	else if ((mMotionType == ProjectileMotion::MOTION_STAR) && mVelX < 0.0f)
+	{
+		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
+	}
+	else if ((mMotionType == ProjectileMotion::MOTION_BOUNCE))
 	{
 		SetBit(aDamageFlags, (int)DamageFlags::DAMAGE_BYPASSES_SHIELD, true);
 	}
@@ -721,6 +725,21 @@ void Projectile::UpdateNormalMotion()
 		mPosY = mOriginalY + aPositionY;
 		CheckForCollision();
 		return;
+	}
+	else if (mMotionType == ProjectileMotion::MOTION_BOUNCE)
+	{
+		if (mPosX < LAWN_XMIN) { mPosX += 3; mVelX *= -1; }
+		if (mPosX > BOARD_WIDTH - 50) { mPosX -= 3; mVelX *= -1; }
+		if (mPosY < LAWN_YMIN) { mPosY += 3; mVelY *= -1; }
+		if (mPosY > BOARD_HEIGHT - 50) { mPosY -= 3; mVelY *= -1; }
+		mPosX += mVelX;
+		mPosY += mVelY;
+		mShadowY += mVelY;
+
+		if (mVelY != 0.0f)
+		{
+			mRow = mBoard->PixelToGridYKeepOnBoard(mPosX, mPosY);
+		}
 	}
 	else if (mMotionType == ProjectileMotion::MOTION_HOMING)
 	{
