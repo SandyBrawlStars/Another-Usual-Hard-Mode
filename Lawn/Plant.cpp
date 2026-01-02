@@ -1214,16 +1214,55 @@ void Plant::UpdateGraveBuster()
     }
     else if (mState == PlantState::STATE_GRAVEBUSTER_EATING && mStateCountdown == 0)
     {
-        GridItem* aGraveStone = mBoard->GetGraveStoneAt(mPlantCol, mRow);
-        if (aGraveStone)
+        if (mVariantType == SEED_VARIANT_NONE)
         {
-            aGraveStone->GridItemDie();
-            mBoard->mGravesCleared++;
-        }
+            GridItem* aGraveStone = mBoard->GetGraveStoneAt(mPlantCol, mRow);
+            if (aGraveStone)
+            {
+                aGraveStone->GridItemDie();
+                mBoard->mGravesCleared++;
+            }
 
-        mApp->AddTodParticle(mX + 40, mY + 40, mRenderOrder + 4, ParticleEffect::PARTICLE_GRAVE_BUSTER_DIE);
-        Die();
-        mBoard->DropLootPiece(mX + 40, mY, 12);
+            mApp->AddTodParticle(mX + 40, mY + 40, mRenderOrder + 4, ParticleEffect::PARTICLE_GRAVE_BUSTER_DIE);
+            Die();
+            mBoard->DropLootPiece(mX + 40, mY, 12);
+        }
+        else
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                Zombie* aZombie = mBoard->AddZombie(ZombieType::ZOMBIE_BACKUP_DANCER, 0);
+                if (aZombie == nullptr)
+                    continue;
+
+                int aRow = ClampInt((i == 0) ? mRow + 1 : (i == 2) ? mRow - 1 : mRow, 0, 4);
+                aZombie->mPosX = (i == 1) ? mX + 80 : (i == 3) ? mX - 80 : mX;
+                aZombie->mPosY = mBoard->GridToPixelY(mPlantCol, aRow);
+                aZombie->SetRow(aRow);
+                aZombie->mX = (int)aZombie->mPosX;
+                aZombie->mY = (int)aZombie->mPosY;
+
+                aZombie->mAltitude = ZOMBIE_BACKUP_DANCER_RISE_HEIGHT;
+                aZombie->mZombiePhase = ZombiePhase::PHASE_DANCER_RISING;
+                aZombie->mPhaseCounter = 150;
+
+                aZombie->SetAnimRate(0.0f);
+                aZombie->StartMindControlled();
+
+                int aParticleX = (int)aZombie->mPosX + 64;
+                int aParticleY = (int)aZombie->mPosY + 110;
+                if (aZombie->IsOnHighGround())
+                {
+                    aParticleY -= HIGH_GROUND_HEIGHT;
+                }
+                int aRenderOrder = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_PARTICLE, aRow, 0);
+                mApp->AddTodParticle(aParticleX, aParticleY, aRenderOrder, ParticleEffect::PARTICLE_DANCER_RISE);
+                mApp->PlayFoley(FoleyType::FOLEY_GRAVESTONE_RUMBLE);
+                aZombie->mScaleZombie *= 0.5f; aZombie->mBodyHealth *= 0.65f;
+                aZombie->mBodyMaxHealth *= 0.65f;
+            }
+            Die();
+        }
     }
 }
 
@@ -3181,6 +3220,10 @@ void Plant::UpdateReanimColor()
     {
         aColorOverride = Color(59, 205, 237);
     }
+    else if (mVariantType == PlantVariant::SEED_VARIANT_RAVEBUSTER)
+    {
+        aColorOverride = Color(219, 52, 235);
+    }
     else if (mVariantType == PlantVariant::SEED_VARIANT_BANKSHROOM)
     {
         aColorOverride = Color(126, 245, 66);
@@ -4825,7 +4868,7 @@ void Plant::MouseDown(int x, int y, int theClickCount)
     if (GetRectOverlap(GetPlantRect(), Rect(mApp->mWidgetManager->mLastMouseX, mApp->mWidgetManager->mLastMouseY, 1 , 1)))
     {
         if (mSeedType == SeedType::SEED_PEASHOOTER)
-        {
+        {   
             if (mVariantType == PlantVariant::SEED_VARIANT_FIREPEA)
             {
                 mVariantType = PlantVariant::SEED_VARIANT_ELECTROPEA;
@@ -5013,6 +5056,17 @@ void Plant::MouseDown(int x, int y, int theClickCount)
                 mVariantType = PlantVariant::SEED_VARIANT_NONE;
                 mLaunchRate = 150;
                 mLaunchCounter = 150;
+            }
+        }
+        if (mSeedType == SeedType::SEED_GRAVEBUSTER)
+        {
+            if (mVariantType == PlantVariant::SEED_VARIANT_NONE)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_RAVEBUSTER;
+            }
+            else if (mVariantType == PlantVariant::SEED_VARIANT_RAVEBUSTER)
+            {
+                mVariantType = PlantVariant::SEED_VARIANT_NONE;
             }
         }
     }

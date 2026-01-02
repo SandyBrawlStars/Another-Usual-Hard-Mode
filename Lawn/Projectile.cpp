@@ -1039,10 +1039,13 @@ void Projectile::DoImpact(Zombie* theZombie)
 		}
 		if (mPoisonOverride >= 0)
 		{
-			theZombie->mPoisonedCounter = max(mPoisonOverride, theZombie->mPoisonedCounter);
-			if (theZombie->mPoisonStack < mMaxPoison)
+			if (theZombie->mShieldHealth < 1 || TestBit(aDamageFlags, DamageFlags::DAMAGE_BYPASSES_SHIELD))
 			{
-				theZombie->mPoisonStack++;
+				theZombie->mPoisonedCounter = max(mPoisonOverride, theZombie->mPoisonedCounter);
+				if (theZombie->mPoisonStack < mMaxPoison)
+				{
+					theZombie->mPoisonStack++;
+				}
 			}
 		}
 	}

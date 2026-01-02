@@ -227,6 +227,16 @@ Board::Board(LawnApp* theApp)
 
 Board::~Board()
 {
+	std::string aTitleName = "Plants vs. Zombies: " + mApp->mModName;
+	aTitleName += " " + mApp->mVersion;
+#ifdef _DEBUG
+	aTitleName += " DEBUG";
+#endif
+
+	SetWindowText(
+		GetActiveWindow(),
+		aTitleName.c_str()
+	);
 	delete mAdvice;
 	delete mCursorObject;
 	delete mCursorPreview;
@@ -583,7 +593,7 @@ void Board::PickZombieWaves()
 	{
 		if (mApp->IsWhackAZombieLevel())
 		{
-			mNumWaves = 8;
+			mNumWaves = 12;
 		}
 		else
 		{
@@ -604,7 +614,7 @@ void Board::PickZombieWaves()
 		else if (mApp->IsExpansionMode())
 			mNumWaves = GetExpansionLevelWaves(aGameMode);
 		else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_WHACK_A_ZOMBIE)
-			mNumWaves = 12;
+			mNumWaves = 15;
 		else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_WALLNUT_BOWLING || aGameMode == GameMode::GAMEMODE_CHALLENGE_AIR_RAID ||
 				 aGameMode == GameMode::GAMEMODE_CHALLENGE_GRAVE_DANGER || aGameMode == GameMode::GAMEMODE_CHALLENGE_HIGH_GRAVITY ||
 				 aGameMode == GameMode::GAMEMODE_CHALLENGE_PORTAL_COMBAT || aGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS ||
@@ -1538,16 +1548,6 @@ void Board::InitLevel()
 		mSeedBank->mSeedPackets[1].SetPacketType(SeedType::SEED_PEASHOOTER);
 		mSeedBank->mSeedPackets[2].SetPacketType(SeedType::SEED_SNOWPEA);
 	}
-	else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_ICE)
-	{
-		TOD_ASSERT(mSeedBank->mNumPackets == 6);
-		mSeedBank->mSeedPackets[0].SetPacketType(SeedType::SEED_PEASHOOTER);
-		mSeedBank->mSeedPackets[1].SetPacketType(SeedType::SEED_CHERRYBOMB);
-		mSeedBank->mSeedPackets[2].SetPacketType(SeedType::SEED_WALLNUT);
-		mSeedBank->mSeedPackets[3].SetPacketType(SeedType::SEED_REPEATER);
-		mSeedBank->mSeedPackets[4].SetPacketType(SeedType::SEED_SNOWPEA);
-		mSeedBank->mSeedPackets[5].SetPacketType(SeedType::SEED_CHOMPER);
-	}
 	else if (aGameMode == GameMode::GAMEMODE_CHALLENGE_ZOMBIQUARIUM)
 	{
 		TOD_ASSERT(mSeedBank->mNumPackets == 2);
@@ -1760,8 +1760,7 @@ bool Board::ChooseSeedsOnCurrentLevel()
 	if (mApp->IsChallengeWithoutSeedBank() || HasConveyorBeltSeedBank())
 		return false;
 
-	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE || 
-		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
+	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST || 
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZOMBIQUARIUM)
 		return false;
@@ -1797,8 +1796,7 @@ void Board::StartLevel()
 		aZombie->mBodyMaxHealth = 8500;
 		aZombie->mPhaseCounter = 1000;
 	}
-	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE || 
-		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || 
+	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || 
 		mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM ||
 		mApp->mGameMode == GameMode::GAMEMODE_UPSELL || 
 		mApp->mGameMode == GameMode::GAMEMODE_INTRO || 
@@ -5774,6 +5772,29 @@ void Board::Update()
 		Details = (mApp->mPlayedQuickplay ? "Quick Play" : "Adventure") + mApp->GetStageString(mLevel);
 	mApp->mDetails = Details;
 
+	std::string aTitleName = "Plants vs. Zombies: " + mApp->mModName;
+	aTitleName += " " + mApp->mVersion;
+#ifdef _DEBUG
+	aTitleName += " DEBUG";
+#endif
+
+	aTitleName += " | " + Details;
+	int aMinutes = mMainCounter / 6000;
+	int aSeconds = (mMainCounter % 6000) / 100;
+
+	aTitleName += " | " + std::to_string(int(mProgressMeterWidth / 1.5)) + "%";
+
+	aTitleName += " | ";
+	if (aMinutes < 10) aTitleName += "0";
+	aTitleName += std::to_string(aMinutes);
+	aTitleName += ":";
+	if (aSeconds < 10) aTitleName += "0";
+	aTitleName += std::to_string(aSeconds);
+	SetWindowText(
+		GetActiveWindow(),
+		aTitleName.c_str()
+	);
+
 	SexyString State;
 	if (mApp->GetDialog(Dialogs::DIALOG_CONTINUE))
 		State = "Continue?";
@@ -9109,7 +9130,7 @@ int Board::GetNumSeedsInBank()
 	}
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE)
 	{
-		return 6;
+		return 10;
 	}
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST)
 	{

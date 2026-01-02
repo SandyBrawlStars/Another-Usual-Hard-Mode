@@ -77,6 +77,8 @@ void MiniCreditsScreen::Draw(Graphics* g)
 	TodDrawString(g, "Yukinonon\n", 630, 480, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
 	TodDrawString(g, "timoox_\n", 630, 500, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
 
+	TodDrawString(g, "Extra LawnTweaks Help\n", 400, 480, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
+	TodDrawString(g, "BoneL and TrashOfTheVillage\n", 400, 500, Sexy::FONT_HOUSEOFTERROR16, TextColor, DS_ALIGN_CENTER);
 	//mMusicButton->Draw(g);
 }
 void MiniCreditsScreen::AddedToManager(WidgetManager* theWidgetManager)

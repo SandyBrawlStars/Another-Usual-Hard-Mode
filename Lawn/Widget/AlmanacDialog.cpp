@@ -304,7 +304,7 @@ void AlmanacDialog::Update()
 	}
 	else if (mOpenPage == ALMANAC_PAGE_EXTRA)
 	{
-		mMaxScrollPosition = 100;
+		mMaxScrollPosition = 170;
 		float aScrollSpeed = mBaseScrollSpeed + abs(mScrollAmount) * mScrollAccel;
 		mScrollPosition += mScrollAmount * aScrollSpeed;
 		mScrollPosition = ClampFloat(mScrollPosition, 0, mMaxScrollPosition);
@@ -493,12 +493,26 @@ void AlmanacDialog::DrawPlants(Graphics* g)
 	{
 		SexyString aCostStr = TodReplaceString(StrFormat(_S("{KEYWORD}{COST}:{STAT} %d"), aPlantDef.mSeedCost), _S("{COST}"), _S("[COST]"));
 		TodDrawStringWrapped(g, aCostStr, Rect(485, 520, 134, 50), Sexy::FONT_BRIANNETOD12, Color::White, DS_ALIGN_LEFT);
-
-		SexyString aRechargeStr = TodReplaceString(
-			_S("{KEYWORD}{WAIT_TIME}:{STAT} {WAIT_TIME_LENGTH}"), 
-			_S("{WAIT_TIME_LENGTH}"),
-			aPlantDef.mRefreshTime == 750 ? _S("[WAIT_TIME_SHORT]") : aPlantDef.mRefreshTime == 3000 ? _S("[WAIT_TIME_LONG]") : _S("[WAIT_TIME_VERY_LONG]")
-		);
+		std::string text;
+		SexyString aRechargeStr;
+		if (aPlantDef.mRefreshTime % 100)
+		{
+			text = std::to_string(aPlantDef.mRefreshTime / 100.0);
+			aRechargeStr = TodReplaceString(
+				_S("{KEYWORD}{WAIT_TIME}:{STAT} {WAIT_TIME_LENGTH}"),
+				_S("{WAIT_TIME_LENGTH}"),
+				_S(text.substr(0, text.find(".") + 2) + "s")
+			);
+		}
+		else
+		{
+			text = std::to_string(aPlantDef.mRefreshTime / 100);
+			aRechargeStr = TodReplaceString(
+				_S("{KEYWORD}{WAIT_TIME}:{STAT} {WAIT_TIME_LENGTH}"),
+				_S("{WAIT_TIME_LENGTH}"),
+				_S(text + "s")
+			);
+		}
 		aRechargeStr = TodReplaceString(aRechargeStr, _S("{WAIT_TIME}"), _S("[WAIT_TIME]"));
 		TodDrawStringWrapped(g, aRechargeStr, Rect(600, 520, 139, 50), Sexy::FONT_BRIANNETOD12, Color(40, 50, 90), DS_ALIGN_RIGHT);
 	}
@@ -756,6 +770,13 @@ void AlmanacDialog::Draw(Graphics* g)
 		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("their attacks are listed in the almanac after the original entry"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 20;
 		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("for that zombie."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 30;
+
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Sun Infection System:"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(227, 193, 0), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("Zombies infected by sun store 7.5% of damage taken as sun,"), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
+		aPosY += 20;
+		if (aPosY > aMin && aPosY < aMax) TodDrawString(g, _S("zombies drop stored sun in groups of 5."), 100, aPosY, Sexy::FONT_DWARVENTODCRAFT15, Color(220, 220, 220), DrawStringJustification::DS_ALIGN_LEFT);
 		aPosY += 30;
 	}
 

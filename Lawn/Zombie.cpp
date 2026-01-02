@@ -69,6 +69,10 @@ ZombieVariantDefinition gZombieVariantDefs[NUM_ZOMBIE_VARIANTS] = {
     {ZOMBIE_VARIANT_SNOWPEA,     _S("SNOW_PEA"),       ZOMBIE_PEA_HEAD},
     {ZOMBIE_VARIANT_STARPAPER,          _S("STARPAPER"),            ZOMBIE_NEWSPAPER},
     {ZOMBIE_VARIANT_MINERPAPER,          _S("MINEPAPER"),            ZOMBIE_NEWSPAPER},
+    {ZOMBIE_VARIANT_BOOSTDOOR,          _S("BOOSTDOOR"),            ZOMBIE_DOOR},
+    {ZOMBIE_VARIANT_ABSORBDOOR,          _S("ABSORBDOOR"),            ZOMBIE_DOOR},
+    {ZOMBIE_VARIANT_BURNINGSQUASH,          _S("BURNINGSQUASH"),            ZOMBIE_SQUASH_HEAD},
+    {ZOMBIE_VARIANT_DRAINSQUASH,          _S("DRAINSQUASH"),            ZOMBIE_SQUASH_HEAD},
 };
 
 static ZombieType gBossZombieList[] = {  
@@ -259,6 +263,14 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
         mShieldHealth = 1100;
         LoadPlainZombieReanim();
         AttachShield();
+        if (RandRangeInt(1, 3) == 3 && mBoard && mBoard->mCurrentWave > 6)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_BOOSTDOOR);
+        }
+        else if (RandRangeInt(1, 2) == 2 && mBoard && mBoard->mCurrentWave > 6)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_ABSORBDOOR);
+        }
         break;
 
     case ZombieType::ZOMBIE_YETI:  
@@ -932,6 +944,15 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
 
         mZombiePhase = ZombiePhase::PHASE_SQUASH_PRE_LAUNCH;
         mVariant = false;
+        if (RandRangeInt(1, 3) == 3 && mBoard && mBoard->mCurrentWave > 6)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_BURNINGSQUASH);
+        }
+        else if (RandRangeInt(1, 3) == 3 && mBoard && mBoard->mCurrentWave > 6)
+        {
+            StartVariant(ZombieVariant::ZOMBIE_VARIANT_DRAINSQUASH);
+        }
+        mSummonCounter = 30;
         break;
     }
     }
@@ -2742,7 +2763,12 @@ void Zombie::UpdateZombieSquashHead()
 
     if (mZombiePhase == ZombiePhase::PHASE_SQUASH_RISING)
     {
+        Plant* aPlant = FindPlantTarget(ZombieAttackType::ATTACKTYPE_CHEW);
         int aDestX = mBoard->GridToPixelX(mBoard->PixelToGridXKeepOnBoard(mX, mY), mRow);
+        if (aPlant)
+        {
+            aDestX = aPlant->mX;
+        }
         if (mMindControlled)
         {
             Zombie* aZombie = FindZombieTarget();
@@ -2773,7 +2799,12 @@ void Zombie::UpdateZombieSquashHead()
     if (mZombiePhase == ZombiePhase::PHASE_SQUASH_FALLING)
     {
         int aPosY = TodAnimateCurve(10, 0, mPhaseCounter, -20, 74, TodCurves::CURVE_LINEAR);
+        Plant* aPlant = FindPlantTarget(ZombieAttackType::ATTACKTYPE_CHEW);
         int aDestX = mBoard->GridToPixelX(mBoard->PixelToGridXKeepOnBoard(mX, mY), mRow);
+        if (aPlant)
+        {
+            aDestX = aPlant->mX;
+        }
         if (mMindControlled)
         {
             Zombie* aZombie = FindZombieTarget();
@@ -2788,7 +2819,10 @@ void Zombie::UpdateZombieSquashHead()
         }
 
         Reanimation* aHeadReanim = mApp->ReanimationGet(mSpecialHeadReanimID);
-        aHeadReanim->SetPosition(mPosX + 6.0f + aDestX - mPosX, mPosY - 21.0f + aPosY);
+        if (mPhaseCounter > 2)
+        {
+            aHeadReanim->SetPosition(mPosX + 6.0f + aDestX - mPosX, mPosY - 21.0f + aPosY);
+        }
         
         if (mPhaseCounter == 2)
         {
@@ -2811,7 +2845,24 @@ void Zombie::UpdateZombieSquashHead()
             }
             else
             {
-                SquishAllInSquare(mBoard->PixelToGridXKeepOnBoard(mX, mY), mRow, ZombieAttackType::ATTACKTYPE_CHEW);
+                SquishAllInSquare(mBoard->PixelToGridXKeepOnBoard(mX + 30, mY), mRow, ZombieAttackType::ATTACKTYPE_CHEW);
+                if (mVariantType == ZOMBIE_VARIANT_BURNINGSQUASH)
+                {
+                    mApp->PlayFoley(FoleyType::FOLEY_JALAPENO_IGNITE);
+                    mApp->PlayFoley(FoleyType::FOLEY_JUICY);
+
+                    mBoard->DoFwoosh(mRow);
+                    mBoard->ShakeBoard(3, -4);
+
+                    Plant* aPlant = nullptr;
+                    while (mBoard->IteratePlants(aPlant))
+                    {
+                        if (aPlant->mRow == mRow)
+                        {
+                            aPlant->mPlantHealth -= 100;
+                        }
+                    }
+                }
             }
         }
 
@@ -2827,11 +2878,29 @@ void Zombie::UpdateZombieSquashHead()
 
     if (mZombiePhase == ZombiePhase::PHASE_SQUASH_DONE_FALLING && mPhaseCounter == 0)
     {
-        Reanimation* aHeadReanim = mApp->ReanimationGet(mSpecialHeadReanimID);
-        aHeadReanim->ReanimationDie();
+        Reanimation* aHeadReanim = mApp->ReanimationTryToGet(mSpecialHeadReanimID);
+        if (aHeadReanim) { aHeadReanim->ReanimationDie(); }
         mSpecialHeadReanimID = ReanimationID::REANIMATIONID_NULL;
 
-        TakeDamage(1800, 9U);
+        DieWithLoot();
+        if (mVariantType == ZOMBIE_VARIANT_DRAINSQUASH)
+        {
+            Zombie* aZombie = nullptr;
+            int aTotalHealth = 0;
+            while (mBoard->IterateZombies(aZombie))
+            {
+                if (aZombie == this) continue;
+                aZombie->TakeDamage(mSummonCounter + 1, 0U);
+                aTotalHealth += mSummonCounter + 1;
+            }
+            aZombie = mBoard->AddZombieInRow(ZOMBIE_SQUASH_HEAD, mRow, 0);
+            aZombie->mPosX = mPosX - 10;
+            aZombie->StartVariant(ZOMBIE_VARIANT_DRAINSQUASH);
+            aZombie->mBodyHealth = aTotalHealth;
+            aZombie->mBodyMaxHealth = aTotalHealth;
+            aZombie->mSummonCounter = mSummonCounter / 1.4;
+            mApp->AddTodParticle(mX + 40, mY + 40, (int)RenderLayer::RENDER_LAYER_TOP, ParticleEffect::PARTICLE_IMITATER_MORPH);
+        }
     }
 }
 
@@ -3282,6 +3351,10 @@ void Zombie::UpdateZombieRiseFromGrave()
         if (mZombieType == ZombieType::ZOMBIE_NEWSPAPER)
         {
             mZombiePhase = ZombiePhase::PHASE_NEWSPAPER_READING;
+        }
+        if (mZombieType == ZombieType::ZOMBIE_POLEVAULTER)
+        {
+            mZombiePhase = ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT;
         }
 
         if (IsOnHighGround())
@@ -6287,6 +6360,30 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
     }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_BOOSTDOOR)
+    {
+        aColorOverride = Color(252, 78, 3, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_ABSORBDOOR)
+    {
+        aColorOverride = Color(3, 177, 252, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_BURNINGSQUASH)
+    {
+        aColorOverride = Color(161, 9, 6, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
+    else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_DRAINSQUASH)
+    {
+        aColorOverride = Color(66, 245, 218, aFadeAlpha);
+        aExtraAdditiveColor = aColorOverride;
+        aEnableExtraAdditiveDraw = true;
+    }
     else if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_STARPAPER)
     {
         aColorOverride = Color(237, 177, 12, aFadeAlpha);
@@ -7874,7 +7971,7 @@ void Zombie::EatPlant(Plant* thePlant)
         }
     }
 
-    thePlant->mPlantHealth -= DAMAGE_PER_EAT * ((mEatPower + (mEatPower * mBucketBoosted)) * mScaleZombie);
+    thePlant->mPlantHealth -= DAMAGE_PER_EAT * ((mEatPower + (mEatPower * mBucketBoosted)) * (mScaleZombie > 1.0f) ? mScaleZombie : 1.0f);
     if (mVariantType == ZombieVariant::ZOMBIE_VARIANT_STARPAPER && mZombieAge % 100 < 4)
     {
         for (int i = 0; i < 4; i++)
@@ -8388,6 +8485,39 @@ void Zombie::DropShield(unsigned int theDamageFlags)
             TodParticleSystem* aParticle = mApp->AddTodParticle(aPosX, aPosY, mRenderOrder + 1, ParticleEffect::PARTICLE_ZOMBIE_DOOR);
             OverrideParticleScale(aParticle);
         }
+        if (mVariantType == ZOMBIE_VARIANT_BOOSTDOOR)
+        {
+            Zombie* aZombie = nullptr;
+            Zombie* aBoostedZombie = nullptr;
+            while (mBoard->IterateZombies(aZombie))
+            {
+                Reanimation* aReanim = mApp->ReanimationTryToGet(aZombie->mBodyReanimID);
+                if (aReanim && aReanim->mReanimationType == ReanimationType::REANIM_ZOMBIE && aZombie->mShieldType != SHIELDTYPE_DOOR && aZombie->mZombieType != ZombieType::ZOMBIE_DOOR && !aZombie->mDead)
+                {
+                    aZombie->mShieldType = ShieldType::SHIELDTYPE_DOOR;
+                    aZombie->mShieldHealth = 250; aZombie->mShieldMaxHealth = 250;
+                    aZombie->mBucketBoosted = true;
+                    aZombie->AttachShield();
+                    aBoostedZombie = aZombie;
+                    TodParticleSystem* aParticle = mApp->AddTodParticle(aZombie->mPosX + 30.0f, aZombie->mPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+                    aParticle->OverrideColor(nullptr, Color(252, 7, 3));
+                    aParticle->OverrideScale(nullptr, 0.6f);
+                    mBoard->ShakeBoard(3, -4);
+                    mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+                    break;
+                }
+            }
+            if (!aBoostedZombie)
+            {
+                mBucketBoosted = true;
+                TodParticleSystem* aParticle = mApp->AddTodParticle(mPosX + 30.0f, mPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+                aParticle->OverrideColor(nullptr, Color(252, 7, 3));
+                aParticle->OverrideScale(nullptr, 0.6f);
+                mBoard->ShakeBoard(3, -4);
+                mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+                mBodyHealth += 250;
+            }
+        }
     }
     else if (mShieldType == ShieldType::SHIELDTYPE_NEWSPAPER)
     {
@@ -8470,11 +8600,55 @@ int Zombie::TakeShieldDamage(int theDamage, unsigned int theDamageFlags)
         {
             TOD_ASSERT(aBodyReanim);
             aBodyReanim->SetImageOverride("anim_screendoor", IMAGE_REANIM_ZOMBIE_SCREENDOOR2);
+            if (mVariantType == ZOMBIE_VARIANT_BOOSTDOOR)
+            {
+                Zombie* aZombie = nullptr;
+                Zombie* aBoostedZombie = nullptr;
+                while (mBoard->IterateZombies(aZombie))
+                {
+                    Reanimation* aReanim = mApp->ReanimationTryToGet(aZombie->mBodyReanimID);
+                    if (aReanim && aReanim->mReanimationType == ReanimationType::REANIM_ZOMBIE && aZombie->mShieldType != SHIELDTYPE_DOOR && aZombie->mZombieType != ZombieType::ZOMBIE_DOOR)
+                    {
+                        aZombie->mShieldType = ShieldType::SHIELDTYPE_DOOR;
+                        aZombie->mShieldHealth = 250; aZombie->mShieldMaxHealth = 250;
+                        aZombie->AttachShield();
+                        aBoostedZombie = aZombie;
+                        TodParticleSystem* aParticle = mApp->AddTodParticle(aZombie->mPosX + 30.0f, aZombie->mPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+                        aParticle->OverrideColor(nullptr, Color(252, 78, 3));
+                        aParticle->OverrideScale(nullptr, 0.6f);
+                        mBoard->ShakeBoard(3, -4);
+                        mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+                        break;
+                    }
+                }
+            }
         }
         else if (mShieldType == ShieldType::SHIELDTYPE_DOOR && aDamageIndexAfterDamage == 2)
         {
             TOD_ASSERT(aBodyReanim);
             aBodyReanim->SetImageOverride("anim_screendoor", IMAGE_REANIM_ZOMBIE_SCREENDOOR3);
+            if (mVariantType == ZOMBIE_VARIANT_BOOSTDOOR)
+            {
+                Zombie* aZombie = nullptr;
+                Zombie* aBoostedZombie = nullptr;
+                while (mBoard->IterateZombies(aZombie))
+                {
+                    Reanimation* aReanim = mApp->ReanimationTryToGet(aZombie->mBodyReanimID);
+                    if (aReanim && aReanim->mReanimationType == ReanimationType::REANIM_ZOMBIE && aZombie->mShieldType != SHIELDTYPE_DOOR && aZombie->mZombieType != ZombieType::ZOMBIE_DOOR)
+                    {
+                        aZombie->mShieldType = ShieldType::SHIELDTYPE_DOOR;
+                        aZombie->mShieldHealth = 250; aZombie->mShieldMaxHealth = 250;
+                        aZombie->AttachShield();
+                        aBoostedZombie = aZombie;
+                        TodParticleSystem* aParticle = mApp->AddTodParticle(aZombie->mPosX + 30.0f, aZombie->mPosY + 30.0f, mRenderOrder + 1, ParticleEffect::PARTICLE_JACKEXPLODE);
+                        aParticle->OverrideColor(nullptr, Color(252, 78, 3));
+                        aParticle->OverrideScale(nullptr, 0.6f);
+                        mBoard->ShakeBoard(3, -4);
+                        mApp->PlayFoley(FoleyType::FOLEY_EXPLOSION);
+                        break;
+                    }
+                }
+            }
         }
         else if (mShieldType == ShieldType::SHIELDTYPE_NEWSPAPER && aDamageIndexAfterDamage == 1)
         {
@@ -8815,6 +8989,15 @@ void Zombie::TakeDamage(int theDamage, unsigned int theDamageFlags)
         return;
 
     int aDamageRemaining = theDamage;
+    Zombie* aAbsorbZombie = nullptr;
+    while (mBoard->IterateZombies(aAbsorbZombie))
+    {
+        if (aAbsorbZombie->mVariantType == ZOMBIE_VARIANT_ABSORBDOOR && GetCircleRectOverlap(mPosX, mPosY, 110, aAbsorbZombie->GetZombieRect()) && aAbsorbZombie->mShieldHealth > 0 && aAbsorbZombie != this && abs(aAbsorbZombie->mRow - mRow) <= 1)
+        {
+            aDamageRemaining *= 0.5f;
+            aAbsorbZombie->TakeShieldDamage(aDamageRemaining, 0U);
+        }
+    }
 
     if (mSunBeaned)
     {

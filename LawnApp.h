@@ -140,6 +140,7 @@ public:
 	time_t							mStartTime;
 	SexyString                      mDetails;
 	SexyString                      mState;
+	SexyString                      mModName;
 
 public:
 	LawnApp();

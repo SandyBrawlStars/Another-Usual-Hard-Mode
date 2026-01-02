@@ -32,7 +32,7 @@
 
 int gZombieWaves[NUM_LEVELS] = {  
 	10, 16,  18,  20, 14,  17, 22, 16, 27, 24,
-	12, 20, 10, 20, 10, 10, 20, 10, 20, 20,
+	12, 20, 15, 20, 10, 10, 20, 10, 20, 20,
 	10, 20, 20, 30, 20, 20, 30, 20, 30, 30,
 	10, 20, 10, 20, 20, 10, 20, 10, 20, 20,
 	10, 20, 20, 30, 20, 20, 30, 20, 30, 30,
@@ -87,7 +87,7 @@ ZombieAllowedLevels gZombieAllowedLevels[NUM_ZOMBIE_TYPES] = {
 	{ ZOMBIE_NEWSPAPER,
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			1, 1, 0, 0, 1, 0, 0, 0, 0, 0,
+			1, 1, 0, 1, 1, 0, 0, 0, 0, 0,
 			0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -1248,11 +1248,27 @@ void Challenge::MouseDownWhackAZombie(int theX, int theY)
 
 			aTopZombie->TakeHelmDamage(900, 0U);
 		}
+		else if (aTopZombie->mShieldType != SHIELDTYPE_NONE)
+		{
+			if (aTopZombie->mShieldType == SHIELDTYPE_DOOR)
+			{
+				mApp->PlayFoley(FOLEY_SHIELD_HIT);
+			}
+
+			aTopZombie->TakeShieldDamage(500, 0U);
+		}
 		else
 		{
 			mApp->PlayFoley(FOLEY_BONK);
 			mApp->AddTodParticle(theX - 3, theY + 9, RENDER_LAYER_ABOVE_UI, PARTICLE_POW);
-			aTopZombie->DieWithLoot();
+			if (aTopZombie->mZombieType == ZOMBIE_POLEVAULTER)
+			{
+				aTopZombie->TakeDamage(300, 0U);
+			}
+			else
+			{
+				aTopZombie->DieWithLoot();
+			}
 			mBoard->ClearCursor();
 		}
 	}
@@ -2229,11 +2245,6 @@ void Challenge::Update()
 	{
 		TreeOfWisdomUpdate();
 	}
-	if (mApp->mGameMode == GAMEMODE_CHALLENGE_ICE && mBoard->mMainCounter == 3000)
-	{
-		mApp->PlayFoley(FOLEY_FLOOP);
-		mApp->PlaySample(Sexy::SOUND_LOSEMUSIC);
-	}
 	if (mApp->mGameMode == GAMEMODE_CHALLENGE_LAST_STAND)
 	{
 		LastStandUpdate();
@@ -2863,6 +2874,8 @@ void Challenge::WhackAZombieSpawning()
 		const int aTripleChance[6] = { 0, 0, 0, 0, 10, 13 };
 		const int aPailChance[6] = { 0, 0, 0, 10, 15, 15 };
 		const int aConeChance[6] = { 0, 0, 30, 30, 30, 30 };
+		const int aPoleChance[6] = { 0, 0, 0, 5, 10, 15 };
+		const int aScreendoorChance[6] = { 0, 0, 2, 5, 10, 15 };
 		int aZombieCount = 1;
 		ZombieType aZombieType = ZOMBIE_NORMAL;
 		int aNumHit = Rand(100);
@@ -2886,7 +2899,15 @@ void Challenge::WhackAZombieSpawning()
 		{
 			aZombieType = ZOMBIE_PAIL;
 		}
-		else if (aTypeHit < aPailChance[aPhase] + aConeChance[aPhase])
+		else if (aTypeHit < aPailChance[aPhase] + aScreendoorChance[aPhase] && aZombieCount < 3)
+		{
+			aZombieType = ZOMBIE_DOOR;
+		}
+		else if (aTypeHit < aPailChance[aPhase] + aScreendoorChance[aPhase] + aPoleChance[aPhase])
+		{
+			aZombieType = ZOMBIE_POLEVAULTER;
+		}
+		else if (aTypeHit < aPailChance[aPhase] + aConeChance[aPhase] + aPoleChance[aPhase] + aScreendoorChance[aPhase])
 		{
 			aZombieType = ZOMBIE_TRAFFIC_CONE;
 		}
@@ -2922,7 +2943,8 @@ void Challenge::WhackAZombieSpawning()
 
 			if (aIsFinalWave)
 			{
-				aZombieType = Rand(2) == 0 ? ZOMBIE_TRAFFIC_CONE : ZOMBIE_PAIL;
+				int aRand = Rand(4);
+				aZombieType = aRand == 0 ? ZOMBIE_TRAFFIC_CONE : aRand == 1 ? ZOMBIE_POLEVAULTER : aRand == 2 ? ZOMBIE_DOOR : ZOMBIE_PAIL;
 				aMaxSpeed = 2;
 			}
 
@@ -2933,6 +2955,8 @@ void Challenge::WhackAZombieSpawning()
 			aZombie->RiseFromGrave(aGraveStone->mGridX, aGraveStone->mGridY);
 			aZombie->mPhaseCounter = 50;
 			aZombie->mVelX = RandRangeFloat(0.5f, aMaxSpeed);
+			if (aZombie->mVariantType == ZOMBIE_VARIANT_DASHER)
+				aZombie->mVelX *= 2.0f;
 			aZombie->UpdateAnimSpeed();
 		}
 
