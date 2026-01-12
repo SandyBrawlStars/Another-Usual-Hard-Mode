@@ -114,6 +114,11 @@ void CutScene::PlaceAZombie(ZombieType theZombieType, int theGridX, int theGridY
 		theZombieType = ZombieType::ZOMBIE_PEA_HEAD;
 		aPutOnDuckyTube = true;
 	}
+	if (theZombieType == ZombieType::ZOMBIE_NORMAL && (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS ||
+		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_2 || mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_3))
+	{
+		theZombieType = ZombieType::ZOMBIE_PEA_HEAD;
+	}
 
 	Zombie* aZombie = mBoard->AddZombieInRow(theZombieType, theGridY, -2);
 	TOD_ASSERT(aZombie);

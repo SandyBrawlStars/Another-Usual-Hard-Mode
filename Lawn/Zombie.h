@@ -170,6 +170,7 @@ public:
     int                             mEatPower;
     bool                            mSunBeaned;
     float                           mSunBanked;
+    bool                            mZBDeluxeMove;
 
 public:
     Zombie();

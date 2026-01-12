@@ -90,12 +90,14 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS,              11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  4,  _S("[I_ZOMBIE_ENDLESS]") },
 	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("Upsell") },
 	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_1,              22,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  0,  _S("Level 1-11: More Levels?") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_2,              23,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  1,  _S("Level 1-12: Anger Issues") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_3,              24,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  2,  _S("Level 1-13: Out of proportion") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_4,              25,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  3,  _S("Level 1-14: Lack of sun?") },
-	{ GameMode::GAMEMODE_EXPANSION_STAGE_5,              26,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  4,  _S("Ultimate Challenge: Day") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_1,              22,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  0,  _S("Day EX-I: More Levels?") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_2,              23,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  1,  _S("Day EX-II: Anger Issues") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_3,              24,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  2,  _S("Day EX-III: Out of proportion") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_4,              25,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  3,  _S("Day EX-IV: Lack of sun?") },
+	{ GameMode::GAMEMODE_EXPANSION_STAGE_5,              26,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    0,  4,  _S("Day: Ultimate Challenge") },
 	{ GameMode::GAMEMODE_EXPANSION_STAGE_6,              0,   ChallengePage::CHALLENGE_PAGE_EXTRAS,    1,  0,  _S("Level 2-11: Unfinished") },
+	{ GameMode::GAMEMODE_ARCADE_STAGE_1,               0,   ChallengePage::CHALLENGE_PAGE_LIMBO,   4,  0,  _S("Arcade: Day") },
+	{ GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_3,               0,   ChallengePage::CHALLENGE_PAGE_CHALLENGE,   4,  0,  _S("Zombotany Deluxe") },
 };
 
 ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
@@ -495,6 +497,13 @@ void ChallengeScreen::DrawButton(Graphics* g, int theChallengeIndex)
 					TodDrawString(g, aAchievement, aPosX + 48, aPosY + 48, Sexy::FONT_CONTINUUMBOLD14, Color(255, 0, 0), DS_ALIGN_CENTER);
 				}
 				else if (mApp->IsSurvivalEndless(aDef.mChallengeMode))
+				{
+					SexyString aAchievement = TodReplaceNumberString(_S("[LONGEST_STREAK]"), _S("{STREAK}"), aRecord);
+					Rect aRect(aPosX, aPosY + 15, 96, 200);
+					TodDrawStringWrapped(g, aAchievement, aRect, Sexy::FONT_CONTINUUMBOLD14OUTLINE, Color::White, DS_ALIGN_CENTER);
+					TodDrawStringWrapped(g, aAchievement, aRect, Sexy::FONT_CONTINUUMBOLD14, Color(255, 0, 0), DS_ALIGN_CENTER);
+				}
+				else if (aDef.mChallengeMode == GameMode::GAMEMODE_ARCADE_STAGE_1)
 				{
 					SexyString aAchievement = TodReplaceNumberString(_S("[LONGEST_STREAK]"), _S("{STREAK}"), aRecord);
 					Rect aRect(aPosX, aPosY + 15, 96, 200);

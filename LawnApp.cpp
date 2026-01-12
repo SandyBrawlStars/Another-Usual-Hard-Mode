@@ -2245,6 +2245,8 @@ SexyString LawnApp::GetStageString(int theLevel)
 {
 	int aArea = ClampInt((theLevel - 1) / LEVELS_PER_AREA + 1, 1, ADVENTURE_AREAS + 1);
 	int aSub = theLevel - (aArea - 1) * LEVELS_PER_AREA;
+	SexyString aAreaTitle = _S((aArea == 1 || aArea == 2) ? "Front Yard" : (aArea == 3 || aArea == 4) ? "Back Yard" : (aArea == 5) ? "Roof" : "MISSING_NAME");
+	SexyString aAreaSubTitle = _S((aArea == 2 || aArea == 4) ? "Night" : "Day");
 	return StrFormat(" %d-%d", aArea, aSub);
 } 
 
@@ -2267,12 +2269,17 @@ bool LawnApp::IsPuzzleMode()
 
 bool LawnApp::IsChallengeMode()
 {
-	return !IsAdventureMode() && !IsPuzzleMode() && !IsSurvivalMode() && !IsExpansionMode();
+	return !IsAdventureMode() && !IsPuzzleMode() && !IsSurvivalMode() && !IsExpansionMode() && !IsArcadeMode();
 }
 
 bool LawnApp::IsExpansionMode()
 {
-	return (mGameMode >= GameMode::GAMEMODE_EXPANSION_STAGE_1);
+	return (mGameMode >= GameMode::GAMEMODE_EXPANSION_STAGE_1 && mGameMode <= GameMode::GAMEMODE_EXPANSION_STAGE_6);
+}
+
+bool LawnApp::IsArcadeMode()
+{
+	return (mGameMode >= GameMode::GAMEMODE_ARCADE_STAGE_1 && mGameMode <= GameMode::GAMEMODE_ARCADE_STAGE_1);
 }
 
 bool LawnApp::IsSurvivalNormal(GameMode theGameMode)

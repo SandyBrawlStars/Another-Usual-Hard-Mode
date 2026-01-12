@@ -2710,6 +2710,20 @@ void Challenge::InitZombieWaves()
 		aList[ZOMBIE_NORMAL] = true;
 		aList[ZOMBIE_WALLNUT_HEAD] = true;
 	}
+	else if (aGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_3)
+	{
+		aList[ZOMBIE_PEA_HEAD] = true;
+		aList[ZOMBIE_NORMAL] = true;
+		aList[ZOMBIE_TRAFFIC_CONE] = true;
+		aList[ZOMBIE_WALLNUT_HEAD] = true;
+		aList[ZOMBIE_SUNFLOWER_HEAD] = true;
+		aList[ZOMBIE_CABBAGE_HEAD] = true;
+		aList[ZOMBIE_TALLNUT_HEAD] = true;
+		aList[ZOMBIE_REPEATER_HEAD] = true;
+		aList[ZOMBIE_SQUASH_HEAD] = true;
+		aList[ZOMBIE_GATLING_HEAD] = true;
+		aList[ZOMBIE_JALAPENO_HEAD] = true;
+	}
 	else if (aGameMode == GAMEMODE_EXPANSION_STAGE_1)
 	{
 		aList[ZOMBIE_TRAFFIC_CONE] = true;

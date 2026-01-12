@@ -1240,7 +1240,7 @@ His newspaper provides limited defense.
 [NEWSPAPER_ZOMBIE_DESCRIPTION]
 {SHORTLINE}
 {KEYWORD}Toughness:{STAT} 470
-{KEYWORD}Newspaper Toughness:{STAT}50
+{KEYWORD}Newspaper Toughness:{STAT} 50
 {KEYWORD}Speed:{STAT} normal, then fast (after losing newspaper)
 {KEYWORD}Bite Power:{STAT} 1, 2 after losing newspaper
 {SHORTLINE}

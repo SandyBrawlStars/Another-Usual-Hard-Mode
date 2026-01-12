@@ -70,6 +70,8 @@ public:
     ParticleEffect          mParticleOverride;
     int                     mFreezeOverride;
     Color                   mColorOverride;
+    bool                    mIsZombie;
+    bool                    mMissesShort;
 
 public:
     Projectile();
@@ -84,6 +86,7 @@ public:
     void                    UpdateMotion();
     void                    CheckForCollision();
     Zombie*                 FindCollisionTarget();
+    Zombie*                 FindCollisionTargetHypno();
     void                    UpdateLobMotion();
     void                    CheckForHighGround();
     bool                    CantHitHighGround();

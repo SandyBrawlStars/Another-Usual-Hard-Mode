@@ -230,6 +230,7 @@ public:
 	int                             mDebugObjectSelection;
 	int                             mDebugObjectType;
 	int                             mDebugObjectLimit;
+	int                             mArcadePoints;
 
 public:
 	Board(LawnApp* theApp);
@@ -354,6 +355,7 @@ public:
 	void							DrawUITop(Graphics* g);
 	void							KillAllPlantsInRadius(int theX, int theY, int theRadius);
 	void							DamageAllPlantsInRadius(int theX, int theY, int theRadius, int theDamage);
+	void							DamageAllZombiesInRadius(int theX, int theY, int theRadius, int theDamage);
 	Plant*							GetPumpkinAt(int theGridX, int theGridY);
 	Plant*							GetFlowerPotAt(int theGridX, int theGridY);
 	bool							LawnHasNocturnal();
@@ -447,6 +449,7 @@ public:
 	/*inline*/ void					RemoveParticleByType(ParticleEffect theEffectType);
 	/*inline*/ GridItem*			GetScaryPotAt(int theGridX, int theGridY);
 	void							PuzzleSaveStreak();
+	void							ArcadeSaveStreak();
 	/*inline*/ void					ClearAdviceImmediately();
 	/*inline*/ bool					IsFinalScaryPotterStage();
 	/*inline*/ void					DisplayAdviceAgain(const SexyString& theAdvice, MessageStyle theMessageStyle, AdviceType theHelpIndex);

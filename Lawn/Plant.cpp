@@ -488,6 +488,33 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         if (aFlowerPot)
             mApp->ReanimationGet(aFlowerPot->mBodyReanimID)->mAnimRate = 0.0f;
     }
+    if (mApp->mGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_3)
+    {
+        ZombieType aZombieType = ZOMBIE_PEA_HEAD;
+        switch (mSeedType)
+        {
+        case SEED_SUNFLOWER: aZombieType = ZOMBIE_SUNFLOWER_HEAD; break;
+        case SEED_JALAPENO: aZombieType = ZOMBIE_JALAPENO_HEAD; break;
+        case SEED_WALLNUT: aZombieType = ZOMBIE_WALLNUT_HEAD; break;
+        case SEED_SQUASH: aZombieType = ZOMBIE_SQUASH_HEAD; break;
+        case SEED_SNOWPEA: aZombieType = ZOMBIE_PEA_HEAD; break;
+        case SEED_TALLNUT: aZombieType = ZOMBIE_TALLNUT_HEAD; break;
+        case SEED_REPEATER: aZombieType = ZOMBIE_REPEATER_HEAD; break;
+        case SEED_GATLINGPEA: aZombieType = ZOMBIE_GATLING_HEAD; break;
+        case SEED_CABBAGEPULT: aZombieType = ZOMBIE_CABBAGE_HEAD; break;
+        }
+        Zombie* aZombie = mBoard->AddZombieInRow(aZombieType, mRow, -5);
+        aZombie->StartMindControlled();
+        aZombie->mPosX = mX;
+        aZombie->mVariantType == ZOMBIE_VARIANT_NONE;
+        if (mSeedType == SEED_SNOWPEA) aZombie->StartVariant(ZOMBIE_VARIANT_SNOWPEA);
+        if (mSeedType == SEED_SUNFLOWER) { aZombie->mVelX = 0.05f; aZombie->UpdateAnimSpeed(); }
+        if (mSeedType == SEED_REPEATER) { aZombie->mBodyHealth += 200; aZombie->mBodyMaxHealth += 200;}
+        if (mSeedType == SEED_GATLINGPEA) { aZombie->mBodyHealth += 500; aZombie->mBodyMaxHealth += 500; }
+        mApp->AddTodParticle(mX + 40, mY + 40, (int)RenderLayer::RENDER_LAYER_TOP, ParticleEffect::PARTICLE_IMITATER_MORPH);
+        mApp->PlayFoley(FoleyType::FOLEY_PLANT);
+        Die();
+    }
 }
 
 int Plant::CalcRenderOrder()
@@ -6038,6 +6065,33 @@ int Plant::GetCost(SeedType theSeedType, SeedType theImitaterType)
             return 200;
         }
     }
+    if (gLawnApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_WAR_AND_PEAS_3)
+    {
+        if (theSeedType == SeedType::SEED_SUNFLOWER)
+        {
+            return 100;
+        }
+        else if (theSeedType == SeedType::SEED_GATLINGPEA)
+        {
+            return 500;
+        }
+        else if (theSeedType == SeedType::SEED_TALLNUT)
+        {
+            return 200;
+        }
+        else if (theSeedType == SeedType::SEED_WALLNUT)
+        {
+            return 100;
+        }
+        else if (theSeedType == SeedType::SEED_SQUASH)
+        {
+            return 75;
+        }
+        else if (theSeedType == SeedType::SEED_CABBAGEPULT)
+        {
+            return 150;
+        }
+    }
 
     switch (theSeedType)
     {
@@ -6105,6 +6159,38 @@ int Plant::GetRefreshTime(SeedType theSeedType, SeedType theImitaterType)
     if (Challenge::IsZombieSeedType(theSeedType))
     {
         return 0;
+    }
+
+    if (gLawnApp->mGameMode == GAMEMODE_CHALLENGE_WAR_AND_PEAS_3)
+    {
+        if (theSeedType == SEED_SUNFLOWER)
+        {
+            return 1750;
+        }
+        else if (theSeedType == SEED_GATLINGPEA)
+        {
+            return 4500;
+        }
+        else if (theSeedType == SEED_SQUASH)
+        {
+            return 3500;
+        }
+        else if (theSeedType == SEED_WALLNUT)
+        {
+            return 3500;
+        }
+        else if (theSeedType == SEED_TALLNUT)
+        {
+            return 4500;
+        }
+        else if (theSeedType == SEED_JALAPENO)
+        {
+            return 5000;
+        }
+        else
+        {
+            return 1000;
+        }
     }
 
     if (theSeedType == SeedType::SEED_IMITATER && theImitaterType != SeedType::SEED_NONE)
